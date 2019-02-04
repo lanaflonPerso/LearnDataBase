@@ -1,6 +1,7 @@
 -- Este archivo contiene varias querys y comentarios sobre ellas mismas. 
 -- Es probable que estos querys puede servir para alguien para repasar algunas cosas de SQLOracle. 
--- ATENCION estos querys y comentarios sobre querys pueden ser erróneas, es solo mis notas durante los estudios. 
+-- ATENCION estos querys y comentarios sobre querys pueden ser erróneas, es solo mis notas durante los estudios.
+-- A este archivo se va agregar mas querys, durante los estudios.
 -- Un saludo a todos. 
 -- Espero que os sirve para algo.
 -- TRL
