@@ -1125,6 +1125,8 @@ select avg(to_number(salary)) from employees group by department_id;
 --==========================================================================================================================================================
 --========================================================================================================================================================== JOIN
 --==========================================================================================================================================================
+-- FK = PK
+
 
 ------------------------------------------------------------------------------------------------------------------------------------- NATURAL JOIN
 -- NATURAL JOIN usa todos campos iguales en ambas tablas para hacer conneccion entre las tablas
@@ -1158,16 +1160,31 @@ select l.city, d.department_name from locations l join departments d using(locat
 select locations.city, departments.department_name from locations join departments using(location_id) where location_id = 1400;
 
 ------------------------------------------------------------------------------------------------------------------------------------- JOIN  ON
--- Palabra clave 'ON' se puede usar cuando campos de relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por exemplo 'e.department_id' y 'd.depar_id' 
-select e.last_name, e.salary, d.department_name, d.department_id from departments d join employees e on (e.department_id = d.department_id);
-select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id from employees e join departments d on(e.department_id = d.department_id);
+-- Palabra clave 'ON' se puede usar cuando campos de relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres 
+-- de campos por exemplo 'e.department_id' y 'd.depar_id' 
+select e.last_name, e.salary, d.department_name, d.department_id from departments d join employees e 
+on (e.department_id = d.department_id);
+
+select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id from employees e 
+join departments d on(e.department_id = d.department_id);
 
 -- Coneccion con tres tablas usando 'ON'
-select first_name ||' '|| last_name, department_name, city from employees e 
+select first_name ||' '|| last_name "Full Name", department_name "Department", city from employees e 
 join departments d 
 on d.department_id = e.department_id 
 join locations l 
 on d.location_id = l.location_id;
+
+-- Additional connection conditions
+select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
+from employees e join departments d 
+on (e.department_id = d.department_id) 
+and e.manager_id = 149;
+
+select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
+from employees e join departments d 
+on (e.department_id = d.department_id) 
+and e.manager_id = 149;
 
 --==========================================================================================================================================================
 --========================================================================================================================================================== ???? Vlozenue selectu
