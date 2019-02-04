@@ -1147,13 +1147,27 @@ select employee_id, last_name,location_id, department_id from employees join dep
 -- Exemplo abajo nos ensena que nosotros usamos campo location_id con USING(location_id) y en parte select nos ponemos 'd.location' con 
 -- un alias. Y por eso nos da ERROR
 select l.city, d.department_name, d.location_id from locations l join departments d using(location_id);
+select locations.city, departments.department_name, departments.location_id from locations join departments using(location_id);
 -- En este ejemplo nos sale misma ERROR, pero en este ejemplo campo location nos hemos puesto en WHERE con alias 'd.location_id'
 select l.city, d.department_name from locations l join departments d using(location_id) where d.location_id = 1400;
+select locations.city, departments.department_name from locations join departments using(location_id) where departments.location_id = 1400;
 -- Aqui ya no tenemos esta ERROR que hemos tenido en dos ejemplos que estan mas ariba, porqu hemos quitado el alias de location_id
-select l.city, d.department_name, location_id from locations l join departments d using(location_id); 
+select l.city, d.department_name, location_id from locations l join departments d using(location_id);
+select locations.city, departments.department_name, location_id from locations join departments using(location_id);
 select l.city, d.department_name from locations l join departments d using(location_id) where location_id = 1400;
+select locations.city, departments.department_name from locations join departments using(location_id) where location_id = 1400;
 
+------------------------------------------------------------------------------------------------------------------------------------- JOIN  ON
+-- Palabra clave 'ON' se puede usar cuando campos de relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por exemplo 'e.department_id' y 'd.depar_id' 
+select e.last_name, e.salary, d.department_name, d.department_id from departments d join employees e on (e.department_id = d.department_id);
+select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id from employees e join departments d on(e.department_id = d.department_id);
 
+-- Coneccion con tres tablas usando 'ON'
+select first_name ||' '|| last_name, department_name, city from employees e 
+join departments d 
+on d.department_id = e.department_id 
+join locations l 
+on d.location_id = l.location_id;
 
 --==========================================================================================================================================================
 --========================================================================================================================================================== ???? Vlozenue selectu
