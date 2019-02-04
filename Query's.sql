@@ -1,3 +1,9 @@
+-- Este archivo contiene varias querys y comentarios sobre ellas mismas. 
+-- Es probable que estos querys puede servir para alguien para repasar algunas cosas de SQLOracle. 
+-- ATENCION estos querys y comentarios sobre querys pueden ser erróneas, es solo mis notas durante los estudios. 
+-- Un saludo a todos. 
+-- Espero que os sirve para algo.
+-- TRL
 --==========================================================================================================================================================
 --========================================================================================================================================================== Alias
 --==========================================================================================================================================================
@@ -13,7 +19,7 @@ select last_name "Name" from employees;    -- alias = Name
 select last_name "Name Employee" from employees;
 
 -- Dentro de alias no se permite poner comillas simples
---select last_name "Alias que lleva co'milla simple" from employees;       -- Error
+select last_name "Alias que lleva co'milla simple" from employees;       -- Error
 
 --==========================================================================================================================================================
 --========================================================================================================================================================== Concatenation
@@ -1149,7 +1155,7 @@ select l.city, d.department_name from locations l join departments d using(locat
 
 
 --==========================================================================================================================================================
---========================================================================================================================================================== ????
+--========================================================================================================================================================== ???? Vlozenue selectu
 --==========================================================================================================================================================
 select(select sum(salary) from employees where department_id = 50) from dual;
 --      (select max(salary) from employees where department_id = 10) from dual;
@@ -1189,6 +1195,6 @@ select username from dba_users order by 1;
 
 
 
--- Hello 
+
 
 
