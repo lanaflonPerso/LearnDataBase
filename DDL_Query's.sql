@@ -305,7 +305,7 @@ select last_name, salary, commission_pct, 12 * salary as "Salary year",
 -- ser String concatenado con espacio en blanco. Ejamplo abajo.
 select last_name || ', ' || commission_pct || ',' from employees;
 
--- -- ====================================================================================================================================== substr() con campos NULL 
+-- ------------------------------------------------------------------------------------------------------------------ substr() con campos NULL 
 select last_name, substr(commission_pct, 1) from employees;
 select last_name, substr(commission_pct, 1, 3) from employees;
 -- Atencion
@@ -525,6 +525,9 @@ order by department_id nulls first;
 --==========================================================================================================================================================
 --==================================================================================================================================== Substitution Variable 
 --==========================================================================================================================================================
+-- En las variables de substitution los characters y fecha se ponen entre 
+-- comillas simples
+
 SELECT employee_id, last_name, salary, department_id
 FROM employees 
 WHERE employee_id = &employee_num ;
@@ -534,6 +537,16 @@ WHERE employee_id = &employee_num ;
 SELECT last_name, department_id, salary*12 
 FROM employees 
 WHERE job_id = '&job_title' ;
+
+-- Si variable de substitucion se usa con fecha es obligatorio 
+-- usar comillas simples
+SELECT last_name, department_id, salary*12 
+FROM employees 
+WHERE hire_date > '&hire_date';
+
+SELECT last_name, department_id, salary*12 
+FROM employees 
+WHERE hire_date > &hire_date;                                                   -- ERROR
 
 SELECT employee_id, last_name, job_id, &column_name 
 FROM employees 
