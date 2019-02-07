@@ -368,29 +368,32 @@ select 123, first_name || ' ' || last_name "Employee" from employees;
 select 123 || first_name || ' ' || last_name "Employee" from employees;
 
 -- Comilla simple
-select 'Nombre''Apellido' from employees;
+select 'Nombre''Apellido' from dual;
 
---select 'Nombre' 'Apellido' from employees;                                    -- Error
+select 'Nombre' 'Apellido' from dual;                                           -- Error
 
-select 'Nombre' || 'Apellido' from employees;                                   -- Not Error
+select 'Nombre' || 'Apellido' from dual;                                        -- Not Error
 
---select 'Literal que lleva co'milla simple' from employees;                    -- Error
+------------------------------------------------------------------------------------------------------------------
+--                                                                                    Ekranirovanie s pomowchy q[ ]
 
-select q'[Literal que lleva co'milla simple]' from employees;                   -- Not Error
+--select 'Literal que lleva co'milla simple' from dual;                         -- Error
 
-select q'[Li'te'ral que lle'va co'milla sim'ple]' from employees;               -- Not Error
+select q'[Literal que lleva co'milla simple]' from dual;                        -- Not Error
 
-select q'(Literal que lleva co'milla simple)' from employees;   
+select q'[Li'te'ral que lle'va co'milla sim'ple]' from dual;                    -- Not Error
 
-select q'!Literal que lleva co'milla simple!' from employees;                   -- Not Error
+select q'(Literal que lleva co'milla simple)' from dual;   
 
-select q'*Literal que lleva co'milla simple*' from employees;                   -- Not Error
+select q'!Literal que lleva co'milla simple!' from dual;                        -- Not Error
+  
+select q'*Literal que lleva co'milla simple*' from dual;                        -- Not Error
 
-select q'-Literal que lleva co'milla simple-' from employees;                   -- Not Error
+select q'-Literal que lleva co'milla simple-' from dual;                        -- Not Error
 
-select q'_Literal que lleva co'milla simple_' from employees;                   -- Not Error
+select q'_Literal que lleva co'milla simple_' from dual;                        -- Not Error
 
-select q'1Literal que lleva co'milla simple1' from employees;                   -- Not Error
+select q'1Literal que lleva co'milla simple1' from dual;                        -- Not Error
 
 --==========================================================================================================================================================
 --================================================================================================================================================= DISTINCT 
@@ -1090,6 +1093,10 @@ select distinct salary from employees;
 --==========================================================================================================================================================
 --==================================================================================================================================== Funcciones de Numeros 
 --==========================================================================================================================================================
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
 -- 'nls_numeric_characters = '',.'''
 select to_char(round((salary / 7), 2), '99G999D99', 'nls_numeric_characters = '',.''') "Formated Salary" 
 from employees;
@@ -1562,15 +1569,41 @@ order by 2;
 --==========================================================================================================================================================
 --========================================================================================================================================== Functions Group
 --==========================================================================================================================================================
+
+-- Guidelines for using the group functions:
+--• DISTINCT makes the function consider only nonduplicate values; ALL makes it
+--  consider every value, including duplicates. The default is ALL and, 
+--  therefore, does not need to be specified.
+--• The data types for the functions with an expr argument may be CHAR, 
+--  VARCHAR2,NUMBER, or DATE.
+--• All group functions ignore null values. To substitute a value for null 
+--  values, use the NVL, NVL2, COALESCE, CASE, or DECODE functions.
+
+-- Group functions operate on sets of rows to give one result per group.
+
+-- Unlike single-row functions, group functions operate on sets of rows to give
+-- one result per group. These sets may comprise the entire table or the table 
+-- that is split into groups.
+
 -- All group functions ignore null values in the column.
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
 
 -- 'Single-row Functions' - funccionan por cada campo de columna que se 
 -- indica en parametros de funccion
+
 -- 'Functions Group' - funccionana por columna entera que se indica en 
 -- parametros de funccion
 
 -- Se recomienda (para entender todas cosas) antes de estudiar las funciones 
 -- de agrupacion hay que estudiar GROUP BY
+
+-- Note: The AVG, SUM, VARIANCE, and STDDEV functions can be used only with 
+-- numeric data types. MAX and MIN cannot be used with LOB or LONG data types.
+
+------------------------------------------------------------------------------------------------------------------
 
 -- Si usamos en select una funccion de agrupacion o varias funciones de 
 -- agrupacion no es obligatorio poner GROUP BY
@@ -1603,7 +1636,13 @@ where avg(salaty) > 8000
 group by department_id;
 
 ------------------------------------------------------------------------------------------------------------------ AVG
+
+-- Average value of 'n' elemnts, ignoring null values
+
 -- Cuando se calcula avg, los campos que estan rellnos de nullos no se cuntan
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
 
 select avg(salary) from employees;
 
@@ -1627,6 +1666,10 @@ select avg(commission_pct),
 from employees; 
 
 ------------------------------------------------------------------------------------------------------------------ COUNT
+
+-- Number of rows, where expr evaluates to something other than null (count 
+-- all selected rows using *, including duplicates and rows with nulls)
+
 -- Devuelve cantidad de las filas(registros) en tabla
 select count(*) from employees;
 
@@ -1647,6 +1690,16 @@ select count(nvl(commission_pct, 0)) from employees;
 select count(distinct department_id) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ MAX
+
+-- Maximum value of expr, ignoring null values
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+-- You can use MIN and MAX for numeric, character, and date data types.
+
+-- You can use the MAX and MIN functions for numeric, character, and date data types.
+
 select max(salary) from employees;
 select max(hire_date) from employees;
 select max(last_name) from employees;
@@ -1660,6 +1713,16 @@ select max(commission_pct) from employees;                                      
 select max(nvl(commission_pct, 0)) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ MIN
+
+-- Minimum value of expr, ignoring null values
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+-- You can use MIN and MAX for numeric, character, and date data types.
+
+-- You can use the MAX and MIN functions for numeric, character, and date data types.
+
 select min(salary) from employees;
 select min(hire_date) from employees;
 select min(last_name) from employees;
@@ -1677,6 +1740,12 @@ select min(commission_pct) from employees;                                      
 select min(nvl(commission_pct, 0)) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ SUM
+
+-- Sum values of n, ignoring null values
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
 select sum(salary) from employees;
 
 select sum(last_name) from employees;   -- ERROR no permite value character
@@ -1688,9 +1757,17 @@ select sum(commission_pct) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ LISTAGG
 
+-- Orders data within each group specified in the ORDER BY clause and then 
+-- concatenates the values of the measure column
+
+
 ------------------------------------------------------------------------------------------------------------------ STDDEV
 
+-- Standard deviation of n, ignoring null values
+
 ------------------------------------------------------------------------------------------------------------------ VARIANCE
+
+-- Variance of n, ignoring null values
 
 
 --==========================================================================================================================================================
