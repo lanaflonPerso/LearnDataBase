@@ -7,6 +7,18 @@
 -- Un saludo a todos. 
 -- Espero que os sirve para algo.
 -- TRL
+
+--==========================================================================================================================================================
+--====================================================================================================================================== General informarion
+--==========================================================================================================================================================
+--The Oracle server evaluates the clauses in the following order:
+--      1. If the statement contains a WHERE clause, the server establishes the 
+--         candidate rows.
+--      2. The server identifies the groups that are specified in the 
+--         GROUP BY clause.
+--      3. The HAVING clause further restricts result groups that do not meet 
+--         the group criteria in the HAVING clause.
+
 --==========================================================================================================================================================
 --==================================================================================================================================================== Alias
 --==========================================================================================================================================================
@@ -445,6 +457,12 @@ and salary > 15000;
 --==========================================================================================================================================================
 --================================================================================================================================================= ORDER BY 
 --==========================================================================================================================================================
+
+-- Place the HAVING and GROUP BY clauses after the WHERE clause in a statement. 
+-- The order of the GROUP BY and HAVING clauses following the WHERE clause is not 
+-- important. You can have either the GROUP BY clause or the HAVING clause first 
+-- as long as they follow the WHERE clause. Place the ORDER BY clause at the end.
+
 -- ASC esta puesto por defecto
 select last_name, job_id, department_id, hire_date 
 from employees
@@ -1285,6 +1303,11 @@ from employees;
 --================================================================================================================================================= GROUP BY 
 --==========================================================================================================================================================
 
+-- Place the HAVING and GROUP BY clauses after the WHERE clause in a statement. 
+-- The order of the GROUP BY and HAVING clauses following the WHERE clause is not 
+-- important. You can have either the GROUP BY clause or the HAVING clause first 
+-- as long as they follow the WHERE clause. Place the ORDER BY clause at the end.
+
 -- You can substitute column with an expression in the SELECT statement.
 
 ------------------------------------------------------------------------------------------------------------------ 
@@ -1437,17 +1460,24 @@ ORDER BY department_id;
 --==========================================================================================================================================================
 --=================================================================================================================================================== HAVING 
 --==========================================================================================================================================================
--- When you use the HAVING clause, the Oracle server restricts groups as follows:
---    1. Rows are grouped.
---    2. The group function is applied.
---    3. Groups matching the HAVING clause are displayed.
+-- The Oracle server performs the following steps when you use the HAVING clause:
+--      1. Rows are grouped.
+--      2. The group function is applied to the group.
+--      3. The groups that match the criteria in the HAVING clause are displayed.
 
 -- Note: The WHERE clause restricts rows, whereas the HAVING clause restricts groups.
 
-------------------------------------------------------------------------------------------------------------------
---                                                                Restricting Group Results with the HAVING Clause
+-- Place the HAVING and GROUP BY clauses after the WHERE clause in a statement. 
+-- The order of the GROUP BY and HAVING clauses following the WHERE clause is not 
+-- important. You can have either the GROUP BY clause or the HAVING clause first 
+-- as long as they follow the WHERE clause. Place the ORDER BY clause at the end.
 
-select department_id, sum(salary) from employees group by department_id;
+------------------------------------------------------------------------------------------------------------------
+--                                                                                         Using the HAVING Clause
+
+select department_id, sum(salary) 
+from employees 
+group by department_id;
 
 select department_id, sum(salary) 
 from employees 
@@ -1458,6 +1488,15 @@ select department_id, max(salary)
 from employees 
 group by department_id 
 having max(salary) > 10000;
+
+SELECT job_id, SUM(salary) PAYROLL
+FROM employees
+WHERE job_id NOT LIKE '%REP%'
+GROUP BY job_id
+HAVING SUM(salary) > 13000
+ORDER BY SUM(salary);
+
+------------------------------------------------------------------------------------------------------------------
 
 -- ATENCION ERROR.
 select department_id, max(salary) 
@@ -1655,17 +1694,54 @@ select sum(commission_pct) from employees;
 
 
 --==========================================================================================================================================================
---=================================================================================================================================  Nesting Functions Group
+--================================================================================================================================== Nesting Group Functions
 --==========================================================================================================================================================
--- Max 'nesting function group' = 2 functions
--- Maksemalnoe colichestvo vlozenux funccioi eto dve funccii
+-- Group functions can be nested to a depth of two functions.
 
-select max(avg(salary)) from employees group by department_id;
-select avg(salary) from employees group by department_id;
+-- Display the maximum average salary
+select max(avg(salary)) 
+from employees 
+group by department_id;
 
--- Se permite usar dos tipos de funcciones ala vez
-select round(avg(salary)) from employees group by department_id;
-select avg(to_number(salary)) from employees group by department_id;
+select avg(salary) 
+from employees 
+group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                       Group functions can be nested to a depth of two functions
+
+select max(avg(salary)) 
+from employees 
+group by department_id; 
+
+-- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
+-- ejemplo de abajo. No son 'Nesting Group Functions'.
+-- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
+-- funcciones no es 'Nesting Group Functions'. 
+-- En este tipo de 'conjunto funcciones' se puede poner cualquier cantida 
+-- de funciones.
+select round(avg(to_number(salary))) from employees;                            -- ATENCION AQUI No son 'Nesting Group Functions'
+
+select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions'
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                  That GROUP BY clause is mandatory when nesting group functions
+
+select max(avg(salary)) 
+from employees;                                                                 -- ERROR
+
+select max(avg(salary)) 
+from employees group by department_id;                                          -- NOT ERROR
+
+-- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
+-- ejemplo de abajo. No son 'Nesting Group Functions'.
+-- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
+-- funcciones no es 'Nesting Group Functions'
+-- En este tipo de 'conjunto funcciones' no es obligatorio poner GROUP BY
+select round(avg(salary)) from employees;                                       -- ATENCION AQUI No son 'Nesting Group Functions' 
+select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions' 
+select round(avg(salary)) from employees group by department_id;                -- ATENCION AQUI No son 'Nesting Group Functions'
+select avg(to_number(salary)) from employees group by department_id;            -- ATENCION AQUI No son 'Nesting Group Functions'
 
 --==========================================================================================================================================================
 --===================================================================================================================================================== JOIN
