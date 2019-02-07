@@ -950,6 +950,9 @@ select to_date('01-JAN-1999', 'dd mm rrrr') from dual;
 select last_name, hire_date from employees where hire_date > '01-JAN-1999';
 select last_name, hire_date from employees where hire_date > '01-JAN-99';
 
+-- Distinct 
+select distinct hire_date from employees;
+
 --==========================================================================================================================================================
 --====================================================================================================================================== Funcciones de Fecha 
 --==========================================================================================================================================================
@@ -1062,6 +1065,9 @@ select last_name, substr(hire_date, 4) from employees;
 --==========================================================================================================================================================
 -- nls_lang=american_america   coneste ajuste se puede cambiar el 
 -- region de base datos
+
+-- Distinct 
+select distinct salary from employees;
 
 --==========================================================================================================================================================
 --==================================================================================================================================== Funcciones de Numeros 
@@ -1278,27 +1284,38 @@ from employees;
 --==========================================================================================================================================================
 --================================================================================================================================================= GROUP BY 
 --==========================================================================================================================================================
+
+-- You can substitute column with an expression in the SELECT statement.
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                      The GROUP BY column does not have to be in the SELECT list
+
+-- Columna que se indica en GROUP BY, puede no estar indicada en SELECT
+select avg(salary) from employees group by department_id;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                      GROUP BY y Group Functions
+
+-- You cannot use the WHERE clause to restrict groups.
+SELECT department_id, AVG(salary)
+FROM employees
+WHERE AVG(salary) > 8000
+GROUP BY department_id;                                                         -- ERROR
+
+-- You use the HAVING clause to restrict groups.
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id
+HAVING AVG(salary) > 8000;                                                         
+
 -- Si usamos en select una funccion de agrupacion o varial funciones de 
 -- agrupacion no es obligatorio poner GROUP BY
 select sum(salary) from employees;
 select max(salary), sum(salary) from employees;
 
--- ERROR.Si usamos una columna y una funccion de agrupacion tenemos que indicar 
--- con que campos nos vamos agrupar, y los 
--- Restos campos que se encuentran en select que no esten en 
--- funcciones de agrupacion
-select department_id, sum(salary) from employees;                               -- ERROR
+-- You cannot use group functions in the WHERE clause.
 
--- Atencion ERROR. Todos campos que se encuentran en select y 
--- cuales no se usan para 
--- Funcciones de agrupacion, es obligatorio poner en GROUP BY
-select last_name, department_id, sum(salary) 
-from employees 
-group by department_id;                                                         -- Atencion ERROR
-
--- Aqui ya no tenemos error, es que campo 'last_name' y 'department_pct' 
--- estan en GROUP BY. 
--- Y campo salary no es obligatorio poner en GROUP BY por rason que 
+-- Campo salary no es obligatorio poner en GROUP BY por rason que 
 -- campo salary se usa con funcion de agrupacion.
 select last_name, department_id, sum(salary) 
 from employees 
@@ -1306,14 +1323,87 @@ group by department_id, last_name;
 
 select department_id, sum(salary) from employees group by department_id;
 
+------------------------------------------------------------------------------------------------------------------
+
+-- If you include a group function in a SELECT clause, you cannot select 
+-- individual column as well, unless the individual column appears in the 
+-- GROUP BY clause. You receive an error message if you fail to include the 
+-- column list in the GROUP BY clause.
+select department_id, sum(salary) from employees;                               -- ERROR
+
+-- NOT ERROR
+select department_id, sum(salary) from employees group by department_id;
+
+-- ERROR.Si usamos una columna y una funccion de agrupacion tenemos que indicar 
+-- con que campos nos vamos agrupar, y los estos campos que se encuentran en 
+-- select que no esten en funcciones de agrupacion
+select last_name, department_id, sum(salary) from employees;                    -- ERROR
+
+-- NOT ERROR
+select last_name, department_id, sum(salary) 
+from employees
+group by department_id, last_name;                               
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                        All the columns in the SELECT list that are not in group 
+--                                                        functions must be in the GROUP BY clause.
+
+-- Any column or expression in the SELECT list that is not an aggregate function 
+-- must be in the GROUP BY clause:
+
+-- You must include the columns in the GROUP BY clause.
+
+-- A GROUP BY clause must be added to count the last names for 
+-- each department_id.
+SELECT department_id, COUNT(last_name) FROM employees;                          -- ERROR
+
+-- Either add job_id in the GROUP BY or remove the job_id column 
+-- from the SELECT list.
+SELECT department_id, job_id, COUNT(last_name)
+FROM employees
+GROUP BY department_id;                                                         -- ERROR
+
+-- Atencion ERROR. Todos campos que se encuentran en select y 
+-- cuales no se usan para agrupacion, es obligatorio poner en GROUP BY
+select last_name, department_id
+from employees 
+group by department_id;                                                         -- ERROR
+
+-- NOT ERROR
+select last_name, department_id
+from employees 
+group by department_id, last_name;                                              -- NOT ERROR
+
+------------------------------------------------------------------------------------------------------------------
+--                                        Usar WHERE antes de GROUP BY para filtrar resultados antes de agrupacion
+
+-- Using a WHERE clause, you can exclude rows before dividing them into groups.
+select department_id 
+from employees
+where hire_date > '19-JAN-2008'
+group by department_id;
+
+select department_id 
+from employees
+group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                             GROUP BY y ORDER BY
 select department_id, job_id, sum(salary) 
 from employees
 group by department_id, job_id 
 order by 1;
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                           No se permite usar alias con GROUP BY
+
+-- You cannot use a column alias in the GROUP BY clause.
 -- Atencion. No se permite agrupar por alias, hay que usar nombre de columna
-select department_id "D", sum(salary) from employees group by D;
+select department_id "D", sum(salary) from employees group by D;                -- ERROR
 select department_id "D", sum(salary) from employees group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                       'Single-Row Functions' y 'Function Group' 
 
 -- Si usa funccion de 'Single-Row Functions' y funccion de 'Function Group' 
 -- es obligatorio poner aquel parametro 
@@ -1321,19 +1411,41 @@ select department_id "D", sum(salary) from employees group by department_id;
 select upper(last_name), max(salary) from employees;                            -- ERROR
 select upper(last_name), max(salary) from employees group by last_name;         -- NOT ERROR
 
--- Columna que se indica en GROUP BY, puede no estar indicada en SELECT
-select avg(salary) from employees group by department_id;
+------------------------------------------------------------------------------------------------------------------
+--                                                                                Grouping by More Than One Column
 
 -- Usar GROUP BY con varios columnas
-select department_id, job_id, sum(salary) from employees 
-where department_id > 40 
-group by department_id, job_id 
-order by department_id;
+SELECT department_id, job_id, sum(salary)
+FROM employees
+GROUP BY department_id, job_id
+ORDER BY job_id;id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                   Using the GROUP BY Clause on Multiple Columns
+
+SELECT department_id, job_id, SUM(salary)
+FROM employees
+WHERE department_id > 40
+GROUP BY department_id, job_id
+ORDER BY department_id;
+
+-- Note: The SUM function is applied to the salary column for all job IDs in the
+-- result set in each DEPARTMENT_ID group. Also, note that the SA_REP row is 
+-- not returned. The DEPARTMENT_ID for this row is NULL and, therefore, does 
+-- not meet the WHERE condition.
 
 --==========================================================================================================================================================
 --=================================================================================================================================================== HAVING 
 --==========================================================================================================================================================
--- Para excluir grupos se usa palabra clave 'HAVING'
+-- When you use the HAVING clause, the Oracle server restricts groups as follows:
+--    1. Rows are grouped.
+--    2. The group function is applied.
+--    3. Groups matching the HAVING clause are displayed.
+
+-- Note: The WHERE clause restricts rows, whereas the HAVING clause restricts groups.
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                Restricting Group Results with the HAVING Clause
 
 select department_id, sum(salary) from employees group by department_id;
 
@@ -1411,6 +1523,8 @@ order by 2;
 --==========================================================================================================================================================
 --========================================================================================================================================== Functions Group
 --==========================================================================================================================================================
+-- All group functions ignore null values in the column.
+
 -- 'Single-row Functions' - funccionan por cada campo de columna que se 
 -- indica en parametros de funccion
 -- 'Functions Group' - funccionana por columna entera que se indica en 
@@ -1450,6 +1564,8 @@ where avg(salaty) > 8000
 group by department_id;
 
 ------------------------------------------------------------------------------------------------------------------ AVG
+-- Cuando se calcula avg, los campos que estan rellnos de nullos no se cuntan
+
 select avg(salary) from employees;
 
 -- ERROR no permite value fecha
@@ -1484,10 +1600,11 @@ select count(last_name) from employees;
 
 -- ATENCION. Los campos nulos count() no cuenta
 select count(commission_pct) from employees;
--- Para poder contar todos campos se puede hacer con esta manera
+
+-- Para poder contar todos campos incluso nullos se puede hacer con esta manera
 select count(nvl(commission_pct, 0)) from employees;
 
--- distinct
+-- Distinct
 select count(distinct department_id) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ MAX
@@ -1553,6 +1670,7 @@ select avg(to_number(salary)) from employees group by department_id;
 --==========================================================================================================================================================
 --===================================================================================================================================================== JOIN
 --==========================================================================================================================================================
+-- Prefiksu yvelichevayt skorost
 -- FK = PK
 
 
