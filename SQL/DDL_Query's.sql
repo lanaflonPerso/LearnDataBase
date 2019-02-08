@@ -1915,9 +1915,9 @@ select avg(to_number(salary)) from employees group by department_id;            
 -- Prefiksu yvelichevayt skorost
 -- FK = PK
 
-
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                    NATURAL JOIN
+--==========================================================================================================================================================
+--============================================================================================================================================= NATURAL JOIN
+--==========================================================================================================================================================
 
 -- NATURAL JOIN joins two tables based on the same column name
 
@@ -1958,8 +1958,38 @@ select department_id, department_name, location_id, city
 from departments 
 natural join locations;
 
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                           USING
+------------------------------------------------------------------------------------------------------------------
+--                                                                Using Table Aliases with the NATURAL JOIN Clause
+
+-- Do not qualify a column that is used in the NATURAL join or a join with a 
+-- USING clause.
+
+-- If the same column is used elsewhere in the SQL statement, do not alias it.
+
+SELECT l.city, d.department_name
+FROM locations l 
+NATURAL JOIN departments d
+WHERE d.location_id = 1400;                                                     -- ERROR
+
+select locations.city, departments.department_name, departments.location_id
+from locations 
+natural join departments 
+where departments.location_id = 1400;                                           -- ERROR
+
+-- Aqui hemos quitado el alias de tabla, y no aparece error
+select l.city, d.department_name, location_id 
+from locations l 
+natural join departments d 
+where location_id = 1400;
+
+select locations.city, departments.department_name, location_id 
+from locations 
+natural join departments 
+where location_id = 1400;
+
+--==========================================================================================================================================================
+--==================================================================================================================================================== USING
+--==========================================================================================================================================================
 
 -- If several columns have the same names but the data types do not match, use 
 -- the USING clause to specify the columns for the equijoin.
@@ -1969,6 +1999,11 @@ natural join locations;
 -- Natural joins use all columns with matching names and data types to join 
 -- the tables. The USING clause can be used to specify only those columns that 
 -- should be used for an equijoin.
+
+-- Campo que se usa con USING, no se permite usar con alias(no se si exactamente 
+-- esta cosa se llama alias) en cual quier lugar de query
+
+------------------------------------------------------------------------------------------------------------------
 
 -- Aqui se usa natural join, tenemos los resultados pero no aparecen 
 -- todos employees.
@@ -1988,34 +2023,54 @@ from employees
 join departments 
 using(department_id);
 
--- Campo que se usa con USING, no se permite usar con alias(no se si exactamente 
--- esta cosa se llama alias) en cual quier lugar de query
+------------------------------------------------------------------------------------------------------------------
+--                                                                       Using Table Aliases with the USING Clause
+
+-- Aliases
+-- Do not qualify a column that is used in the NATURAL join or a join with a 
+-- USING clause.
+-- If the same column is used elsewhere in the SQL statement, do not alias it.
+
+SELECT l.city, d.department_name
+FROM locations l 
+JOIN departments d
+USING (location_id)
+WHERE d.location_id = 1400;                                                     -- ERROR
+
+select locations.city, departments.department_name, departments.location_id
+from locations 
+join departments
+using(location_id) 
+where departments.location_id = 1400;                                           -- ERROR
+
+-- Aqui hemos quitado el alias de tabla, y no aparece error
+select l.city, d.department_name, location_id 
+from locations l 
+join departments d 
+using(location_id) 
+where location_id = 1400;
+
+select locations.city, departments.department_name, location_id 
+from locations 
+join departments 
+using(location_id) 
+where location_id = 1400;
+
+-- Campo que se usa con USING, no se permite usar table prefix en cual quier
+-- lugar de query
+
 -- Exemplo abajo nos ensena que nosotros usamos campo location_id con 
--- USING(location_id) y en parte select nos ponemos 'd.location' con un alias. 
--- Y por eso nos da ERROR
+-- USING(location_id) y en parte select nos ponemos 'd.location' con table 
+-- prefix por eso nos da ERROR
 select l.city, d.department_name, d.location_id 
 from locations l 
 join departments d 
-using(location_id);
+using(location_id);                                                             -- ERROR
 
 select locations.city, departments.department_name, departments.location_id 
 from locations 
 join departments 
-using(location_id);
-
--- En este ejemplo nos sale misma ERROR, pero en este ejemplo campo location 
--- nos hemos puesto en WHERE con alias 'd.location_id'
-select l.city, d.department_name 
-from locations l 
-join departments d 
-using(location_id) 
-where d.location_id = 1400;
-
-select locations.city, departments.department_name
-from locations 
-join departments
-using(location_id) 
-where departments.location_id = 1400;
+using(location_id);                                                             -- ERROR
 
 -- Aqui ya no tenemos esta ERROR que hemos tenido en dos ejemplos que estan 
 -- mas ariba, porqu hemos quitado el alias de location_id
@@ -2029,21 +2084,52 @@ from locations
 join departments 
 using(location_id);
 
-select l.city, d.department_name 
-from locations l 
-join departments d 
-using(location_id) 
-where location_id = 1400;
+------------------------------------------------------------------------------------------------------------------
 
-select locations.city, departments.department_name 
-from locations 
-join departments 
-using(location_id) 
-where location_id = 1400;
 
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                        JOIN  ON
 
+
+--==========================================================================================================================================================
+--======================================================================================================================== Qualifying Ambiguous Column Names
+--==========================================================================================================================================================
+
+-- Use table prefixes to qualify column names that are in multiple tables.
+-- Use table prefixes to increase the speed of parsing of the statement.
+-- Instead of full table name prefixes, use table aliases.
+-- Table alias gives a table a shorter name:
+--               Keeps SQL code smaller, uses less memory
+-- Use column aliases to distinguish columns that have identical names, but 
+-- reside in different tables.
+
+-- When joining two or more tables, you need to qualify the names of the columns 
+-- with the table name to avoid ambiguity. Without the table prefixes, the 
+-- DEPARTMENT_ID column in the SELECT list could be from either the DEPARTMENTS 
+-- table or the EMPLOYEES table. It is necessary to add the table prefix to 
+-- execute your query. If there are no common column names between the two 
+-- tables, there is no need to qualify the columns. However, using the table 
+-- prefix increases the speed of parsing of the statement, because you tell the 
+-- Oracle server exactly where to find the columns.
+-- However, qualifying column names with table names can be time consuming, 
+-- particularly if the table names are lengthy. Instead, you can use table 
+-- aliases. Just as a column alias gives a column another name, a table alias 
+-- gives a table another name. Table aliases help to keep SQL code smaller, 
+-- therefore, using less memory.
+-- The table name is specified in full, followed by a space, and then the table 
+-- alias. For example, the EMPLOYEES table can be given an alias of e, and the 
+-- DEPARTMENTS table an alias of d.
+
+-- Guidelines
+--• Table aliases can be up to 30 characters in length, but shorter aliases are 
+--  better thanlonger ones.
+--• If a table alias is used for a particular table name in the FROM clause, 
+--  that table alias must be substituted for the table name throughout the 
+--  SELECT statement.
+--• Table aliases should be meaningful.
+--• The table alias is valid for only the current SELECT statement.
+
+--==========================================================================================================================================================
+--================================================================================================================================================== JOIN ON
+--==========================================================================================================================================================
 
 -- Palabra clave 'ON' se puede usar cuando campos de 
 -- relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por 
