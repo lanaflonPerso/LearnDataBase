@@ -2031,6 +2031,10 @@ using(department_id);
 -- USING clause.
 -- If the same column is used elsewhere in the SQL statement, do not alias it.
 
+-- When joining with the USING clause, you cannot qualify a column that is used 
+-- in the USING clause itself. Furthermore, if that column is used anywhere in 
+-- the SQL statement, you cannot alias it.
+
 SELECT l.city, d.department_name
 FROM locations l 
 JOIN departments d
@@ -2055,6 +2059,7 @@ from locations
 join departments 
 using(location_id) 
 where location_id = 1400;
+
 
 -- Campo que se usa con USING, no se permite usar table prefix en cual quier
 -- lugar de query
