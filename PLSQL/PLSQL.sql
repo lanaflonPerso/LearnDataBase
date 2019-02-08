@@ -57,6 +57,47 @@ variable x varchar(20)
 --==========================================================================================================================================================
 
 
+DECLARE
+  v_emp_name employees.last_name%TYPE; 
+  v_emp_salary employees.salary%TYPE;
+BEGIN
+  SELECT last_name,
+         salary
+  INTO v_emp_name,
+       v_emp_salary
+  FROM employees
+  WHERE employee_id = 100;
+  DBMS_OUTPUT.PUT_LINE('My name is: '|| v_emp_name );
+  DBMS_OUTPUT.PUT_LINE('Salary is: '|| v_emp_salary );
+END;
+/
+
+
+DECLARE
+  v_fname VARCHAR2(25);
+BEGIN
+  SELECT first_name INTO v_fname FROM employees WHERE employee_id=200;
+  DBMS_OUTPUT.PUT_LINE(' First Name is : '||v_fname);
+END;
+/
+
+
+DECLARE
+  v_emp_hiredate employees.hire_date%TYPE;
+  v_emp_salary employees.salary%TYPE;
+BEGIN
+  SELECT hire_date,
+    salary
+  INTO v_emp_hiredate,
+    v_emp_salary
+  FROM employees
+  WHERE employee_id = 100;
+  DBMS_OUTPUT.PUT_LINE ('Hire date is :'|| v_emp_hiredate);
+  DBMS_OUTPUT.PUT_LINE ('Salary is :'|| v_emp_salary);
+END;
+/
 
 
 
+
+select * from employees order by employee_id;

@@ -398,6 +398,12 @@ select q'1Literal que lleva co'milla simple1' from dual;                        
 --==========================================================================================================================================================
 --================================================================================================================================================= DISTINCT 
 --==========================================================================================================================================================
+
+-- COUNT(DISTINCT expr) returns the number of distinct non-null values of expr.
+
+-- Use the DISTINCT keyword to suppress the counting of any duplicate values 
+-- in a column.
+
 select distinct department_id from employees;
 
 select first_name, distinct salary from employees;                              -- Error
@@ -1310,10 +1316,30 @@ from employees;
 --================================================================================================================================================= GROUP BY 
 --==========================================================================================================================================================
 
+-- You can use the GROUP BY clause to divide the rows in a table into groups. 
+-- You can then use the group functions to return summary information for each
+-- group.
+
+-- Guidelines
+-- • If you include a group function in a SELECT clause, you cannot select 
+--   individual column as well, unless the individual column appears in the 
+--   GROUP BY clause. You receive an error message if you fail to include the 
+--   column list in the GROUP BY clause.
+-- • Using a WHERE clause, you can exclude rows before dividing them into groups.
+-- • You can substitute column with an expression in the SELECT statement.
+-- • You must include the columns in the GROUP BY clause.
+-- • You cannot use a column alias in the GROUP BY clause.
+
 -- Place the HAVING and GROUP BY clauses after the WHERE clause in a statement. 
 -- The order of the GROUP BY and HAVING clauses following the WHERE clause is not 
 -- important. You can have either the GROUP BY clause or the HAVING clause first 
 -- as long as they follow the WHERE clause. Place the ORDER BY clause at the end.
+
+-- When using the GROUP BY clause, make sure that all columns in the SELECT 
+-- list that are not group functions are included in the GROUP BY clause.
+
+-- Note: To order the query results in ascending or descending order, include 
+-- the ORDER BY clause in the query.
 
 -- You can substitute column with an expression in the SELECT statement.
 
@@ -1372,7 +1398,14 @@ select last_name, department_id, sum(salary) from employees;                    
 -- NOT ERROR
 select last_name, department_id, sum(salary) 
 from employees
-group by department_id, last_name;                               
+group by department_id, last_name;    
+
+------------------------------------------------------------------------------------------------------------------
+--                                                      The GROUP BY column does not have to be in the SELECT list
+
+SELECT AVG(salary)
+FROM employees
+GROUP BY department_id ;
 
 ------------------------------------------------------------------------------------------------------------------ 
 --                                                        All the columns in the SELECT list that are not in group 
@@ -1419,10 +1452,17 @@ group by department_id;
 
 ------------------------------------------------------------------------------------------------------------------
 --                                                                                             GROUP BY y ORDER BY
+
 select department_id, job_id, sum(salary) 
 from employees
 group by department_id, job_id 
 order by 1;
+
+-- You can also use the group function in the ORDER BY clause:
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id
+ORDER BY AVG(salary);
 
 ------------------------------------------------------------------------------------------------------------------
 --                                                                           No se permite usar alias con GROUP BY
@@ -1603,6 +1643,12 @@ order by 2;
 -- Note: The AVG, SUM, VARIANCE, and STDDEV functions can be used only with 
 -- numeric data types. MAX and MIN cannot be used with LOB or LONG data types.
 
+-- You can also use the group function in the ORDER BY clause:
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id
+ORDER BY AVG(salary);
+
 ------------------------------------------------------------------------------------------------------------------
 
 -- Si usamos en select una funccion de agrupacion o varias funciones de 
@@ -1634,6 +1680,20 @@ select department_id, avg(salary)
 from employees 
 where avg(salaty) > 8000 
 group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                 Group Functions and Null Values
+
+-- All group functions ignore null values in the column.
+-- However, the NVL function forces group functions to include null values.
+
+-- Group functions ignore null values in the column:
+SELECT AVG(commission_pct)
+FROM employees;
+
+-- The NVL function forces group functions to include null values:
+SELECT AVG(NVL(commission_pct, 0))
+FROM employees;
 
 ------------------------------------------------------------------------------------------------------------------ AVG
 
@@ -1670,6 +1730,12 @@ from employees;
 -- Number of rows, where expr evaluates to something other than null (count 
 -- all selected rows using *, including duplicates and rows with nulls)
 
+-- In contrast, COUNT(expr) returns the number of non-null values that are in 
+-- the column identified by expr.
+
+-- COUNT(DISTINCT expr) returns the number of unique, non-null values that are 
+-- in the column identified by expr.
+
 -- Devuelve cantidad de las filas(registros) en tabla
 select count(*) from employees;
 
@@ -1684,6 +1750,7 @@ select count(last_name) from employees;
 select count(commission_pct) from employees;
 
 -- Para poder contar todos campos incluso nullos se puede hacer con esta manera
+-- Rellenando campos nulos con 'zero'
 select count(nvl(commission_pct, 0)) from employees;
 
 -- Distinct
@@ -1699,6 +1766,8 @@ select count(distinct department_id) from employees;
 -- You can use MIN and MAX for numeric, character, and date data types.
 
 -- You can use the MAX and MIN functions for numeric, character, and date data types.
+
+-- MAX and MIN cannot be used with LOB or LONG data types.
 
 select max(salary) from employees;
 select max(hire_date) from employees;
@@ -1722,6 +1791,8 @@ select max(nvl(commission_pct, 0)) from employees;
 -- You can use MIN and MAX for numeric, character, and date data types.
 
 -- You can use the MAX and MIN functions for numeric, character, and date data types.
+
+-- MAX and MIN cannot be used with LOB or LONG data types.
 
 select min(salary) from employees;
 select min(hire_date) from employees;
@@ -1823,26 +1894,81 @@ select avg(to_number(salary)) from employees group by department_id;            
 --==========================================================================================================================================================
 --===================================================================================================================================================== JOIN
 --==========================================================================================================================================================
+
+-- Joins that are compliant with the SQL:1999 standard include the following:
+--• Natural join with the NATURAL JOIN clause
+--• Join with the USING clause
+--• Join with the ON clause
+--• OUTER joins:
+--        LEFT OUTER JOIN
+--        RIGHT OUTER JOIN
+--        FULL OUTER JOIN
+--• Cross joins
+
+-- Note
+--• Before the Oracle9i release, the Oracle join syntax was different from the 
+--  American National Standards Institute (ANSI) standards. The SQL:1999–compliant 
+--  join syntax does not offer any performance benefits over the Oracle-proprietary 
+--  join syntax that existed in the prior releases.
+--• The following slide discusses the SQL:1999 join syntax.
+
 -- Prefiksu yvelichevayt skorost
 -- FK = PK
 
 
------------------------------------------------------------------------------------------------------------------- NATURAL JOIN
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                    NATURAL JOIN
+
+-- NATURAL JOIN joins two tables based on the same column name
+
+-- The NATURAL JOIN clause is based on all the columns that have the same name 
+-- in two tables.
+
+-- It selects rows from the two tables that have equal values in all matched 
+-- columns.
+
+-- If the columns having the same names have different data types, an error 
+-- is returned.
+
+-- Note: The join can happen on only those columns that have the same names 
+-- and data types in both tables. If the columns have the same name but 
+--  different data types, the NATURAL JOIN syntax causes an error.
+
 -- NATURAL JOIN usa todos campos iguales en ambas tablas para hacer conneccion 
 -- entre las tablas
 
-select department_id, department_name, location_id, city 
-from departments 
-natural join locations;
+SELECT * 
+FROM employees 
+NATURAL JOIN departments;
+
+SELECT employee_id, first_name, job_id, job_title
+from employees 
+NATURAL JOIN jobs;
+
+SELECT department_id, department_name, location_id, city
+FROM departments
+NATURAL JOIN locations
+WHERE department_id IN (20, 50);
 
 select department_id, department_name, location_id, city 
 from departments 
 natural join locations;
 
------------------------------------------------------------------------------------------------------------------- USING
--- Palabra clave USING se usa para asignar concretamente con que 
--- campo tenemos que hacer
--- Conneccion entre las tablas
+select department_id, department_name, location_id, city 
+from departments 
+natural join locations;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                           USING
+
+-- If several columns have the same names but the data types do not match, use 
+-- the USING clause to specify the columns for the equijoin.
+
+-- Use the USING clause to match only one column when more than one column matches.
+
+-- Natural joins use all columns with matching names and data types to join 
+-- the tables. The USING clause can be used to specify only those columns that 
+-- should be used for an equijoin.
 
 -- Aqui se usa natural join, tenemos los resultados pero no aparecen 
 -- todos employees.
@@ -1915,7 +2041,10 @@ join departments
 using(location_id) 
 where location_id = 1400;
 
------------------------------------------------------------------------------------------------------------------- JOIN  ON
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                        JOIN  ON
+
+
 -- Palabra clave 'ON' se puede usar cuando campos de 
 -- relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por 
 -- exemplo 'e.department_id' y 'd.depar_id' 
