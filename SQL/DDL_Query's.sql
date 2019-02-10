@@ -341,6 +341,13 @@ select last_name, job_id, hire_date
 from employees
 where last_name like'Matos' or last_name like 'Taylor';                         -- NOT ERROR
 
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                             LIKE con 'Variable de substitution'  
+
+select INITCAP(last_name) "Name", length(last_name) "Length"
+from employees
+where last_name like upper('&START_LETTER%');
+
 --==========================================================================================================================================================
 --===================================================================================================================================================== NULL 
 --==========================================================================================================================================================
@@ -676,6 +683,13 @@ FROM employees
 WHERE hire_date > '&hire_date';                                                 -- NOT ERROR
 
 ------------------------------------------------------------------------------------------------------------------ 
+--                                                                 Variable de substitution con palabra clave LIKE
+
+select INITCAP(last_name) "Name", length(last_name) "Length"
+from employees
+where last_name like upper('&START_LETTER%');
+
+------------------------------------------------------------------------------------------------------------------ 
 
 SELECT employee_id, last_name, job_id, &column_name 
 FROM employees 
@@ -904,6 +918,10 @@ select last_name, salary, to_char(salary, '999G99D00') from employees;
 --==========================================================================================================================================================
 --==================================================================================================================================================== Fecha 
 --==========================================================================================================================================================
+
+-- Note: If your database is remotely located in a different time zone, the 
+-- output will be the date for the operating system on which the database resides.
+
 -- dd = dia presentada como un numero
 select to_char(sysdate, 'dd') from dual;
 -- day = dia de la semana presentada como: lunes, martes, miercoles, ...
@@ -1309,6 +1327,8 @@ ROUND(455.923,-2),ROUND(455.923,-3), ROUND(45.9235), ROUND(45) FROM DUAL;
 SELECT TRUNC(45.923,2), TRUNC(45.923), TRUNC(45.923, 0), TRUNC(45.923,-1), 
        TRUNC(450.923,-2), TRUNC(45)  
 FROM DUAL;
+
+select salary, trunc(salary, -2) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ CEIL()
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre ceil()
