@@ -86,6 +86,49 @@ select last_name, hire_date
 from employees
 where to_char(hire_date, 'yyyy') = '2006'; 
 
+-- 8.
+select last_name, job_id
+from employees
+where manager_id is null;
+
+-- 9.
+select last_name, salary, commission_pct
+from employees
+where commission_pct is not null
+order by 2 desc, 3 desc;
+
+-- 10.
+select last_name, salary
+from employees
+where salary > &salary;
+
+-- 11.
+select employee_id, last_name, salary, department_id
+from employees
+where manager_id = &Manager_id
+order by &sort_by;
+
+-- 12.
+select last_name 
+from employees
+where last_name like '__a%';
+
+-- 13.
+select last_name 
+from employees
+where last_name like '%a%' and last_name like '%e%';
+
+-- 14.
+SELECT last_name, job_id, salary
+FROM employees
+WHERE job_id IN ('SA_REP', 'ST_CLERK')
+AND salary NOT IN (2500, 3500, 7000);
+
+-- 15.
+select last_name "Employee", salary "Monthly Salary", commission_pct 
+from employees 
+where commission_pct = 0.2;
+
 --==========================================================================================================================================================
 --=================================================================================================================================== Practices for Lesson 4
 --==========================================================================================================================================================

@@ -11,6 +11,7 @@
 --==========================================================================================================================================================
 --====================================================================================================================================== General informarion
 --==========================================================================================================================================================
+
 --The Oracle server evaluates the clauses in the following order:
 --      1. If the statement contains a WHERE clause, the server establishes the 
 --         candidate rows.
@@ -50,11 +51,16 @@ from employees;                                                                 
 --==========================================================================================================================================================
 --============================================================================================================================================ Concatenation
 --==========================================================================================================================================================
--- String || String
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                String || String
+
 select first_name || last_name "Employee"  
 from employees;
 
--- String || Literal || String
+------------------------------------------------------------------------------------------------------------------
+--                                                                                     String || Literal || String
+
 select first_name || ' ' || last_name "Employee" 
 from employees;
 
@@ -64,15 +70,21 @@ from employees;
 select 123 || first_name || ' ' || last_name "Employee" 
 from employees;
 
--- String || Number
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                String || Number
+
 select first_name || ' ' || salary "Employee and Salary" 
 from employees;
 
--- String || Date(fecha)
+------------------------------------------------------------------------------------------------------------------
+--                                                                                            String || Date(fecha)
+
 select first_name || ' ' || hire_date "Employee and Start Date" 
 from employees;
 
--- String || double or Null
+------------------------------------------------------------------------------------------------------------------
+--                                                                                        String || double or Null
+
 -- Este output es interesante.
 select first_name || ' ' || commission_pct "Employee and Commission", 
        commission_pct 
@@ -81,6 +93,7 @@ from employees;
 --==========================================================================================================================================================
 --========================================================================================================================== Operaciones aritmetics: + - * / 
 --==========================================================================================================================================================
+
 select last_name, salary, 12 * salary + 100 
 from employees;
 
@@ -90,14 +103,16 @@ from employees;
 select last_name, salary, - salary + 100 
 from employees;
 
--- Error division bu zero
+------------------------------------------------------------------------------------------------------------------
+--                                                                                          Error division bu zero
 select 5 / 0 from dual;                                                         -- Error  
 
-select 0 / 8 from dual;
+select 0 / 8 from dual;                                                         -- NOT ERROR
 
 --==========================================================================================================================================================
 --==================================================================================================================================================== WHERE
 --==========================================================================================================================================================
+
 select last_name, department_id 
 from employees 
 where last_name = 'King';
@@ -120,7 +135,7 @@ where hire_date = '17-jun-03';
 
 ------------------------------------------------------------------------------------------------------------------
 
--- Como se puede usar dos condinciones ala ves
+-- Como se puede usar dos condinciones a la ves
 select last_name "Employee", salary "Monthly Salary"  
 from employees 
 where (salary between 5000 and 12000)
@@ -129,6 +144,7 @@ and (department_id = 20 or department_id = 50);
 --==========================================================================================================================================================
 --=============================================================================================================================================== Conditions
 --==========================================================================================================================================================
+
 --   <
 --   >
 --   <=
@@ -201,6 +217,7 @@ where last_name <= 'King';
 --==========================================================================================================================================================
 --================================================================================================================================================== BETWEEN
 --==========================================================================================================================================================
+
 -- Van aparecer todos salary que se encuentren entere 10500 y 17000, incluso los 
 -- salary que estan igual al 10500 y 17000 
 select last_name, salary 
@@ -223,6 +240,7 @@ between -10 and 1000000000000000000;
 --==========================================================================================================================================================
 --======================================================================================================================================================= IN
 --==========================================================================================================================================================
+
 select employee_id, last_name, salary, manager_id 
 from employees 
 where manager_id in(100, 101, 201);
@@ -230,6 +248,7 @@ where manager_id in(100, 101, 201);
 --==========================================================================================================================================================
 --===================================================================================================================================================== LIKE 
 --==========================================================================================================================================================
+
 select last_name from employees where last_name like 'K%';
 
 select last_name from employees where last_name like '%s';
@@ -244,6 +263,9 @@ select last_name from employees where last_name like '%e_';
 
 select last_name from employees where last_name like '_A%';
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                LIKE con numeros
+
 -- Se permite buscar los numeros tambien
 select last_name, salary 
 from employees 
@@ -252,6 +274,13 @@ where salary like '24%';
 select last_name, salary 
 from employees 
 where salary like '4%';
+
+select last_name, salary 
+from employees 
+where salary like '_6%';
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                  LIKE con Fecha
 
 -- Se permite buscar las fechas tambien
 select last_name, hire_date 
@@ -266,6 +295,9 @@ select last_name, hire_date
 from employees 
 where hire_date like '_______04%';
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                 LIKE con NULLOS
+
 -- No se permite buscar los canopos Nullos. Los campos nullos se buscan con 
 -- palabras claves 'IS NULL' y 'IS NOT NULL'
 select last_name, commission_pct 
@@ -275,6 +307,8 @@ where commission_pst like 'Null';                                               
 select last_name, commission_pct 
 from employees 
 where commission_pst like 'null';                                               -- Error
+
+------------------------------------------------------------------------------------------------------------------
 
 -- Interesante cosa, nos sale output casi de todos empleados.
 select last_name 
@@ -337,6 +371,13 @@ select last_name, salary, commission_pct, 12 * salary as "Salary year",
 -- ser String concatenado con espacio en blanco. Ejamplo abajo.
 select last_name || ', ' || commission_pct || ',' from employees;
 
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                     IS NOT NULL
+
+select last_name, salary, commission_pct
+from employees
+where commission_pct is not null;
+
 ------------------------------------------------------------------------------------------------------------------ substr() con campos NULL 
 select last_name, substr(commission_pct, 1) from employees;
 select last_name, substr(commission_pct, 1, 3) from employees;
@@ -358,6 +399,10 @@ where commission_pct = null;
 select first_name, commission_pct 
 from employees 
 where commission_pct is not null;
+
+select last_name, job_id
+from employees
+where manager_id is null;
 
 --==========================================================================================================================================================
 --================================================================================================================================================== Literal 
@@ -600,25 +645,54 @@ SELECT employee_id, last_name, salary, department_id
 FROM employees 
 WHERE employee_id = &employee_num ;
 
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                          Variable de substitution con Character 
+
 -- Si variable de substitucion se usa con character es obligatorio 
 -- usar comillas simples
-SELECT last_name, department_id, salary*12 
+
+SELECT last_name, department_id 
 FROM employees 
-WHERE job_id = '&job_title' ;
+WHERE last_name = &last_name;                                                   -- ERROR
+
+SELECT last_name, department_id 
+FROM employees 
+WHERE last_name = '&last_name';                                                 -- NOT ERROR
+
+ 
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                              Variable de substitution con Fecha
 
 -- Si variable de substitucion se usa con fecha es obligatorio 
 -- usar comillas simples
-SELECT last_name, department_id, salary*12 
-FROM employees 
-WHERE hire_date > '&hire_date';
 
-SELECT last_name, department_id, salary*12 
+SELECT last_name, department_id
 FROM employees 
 WHERE hire_date > &hire_date;                                                   -- ERROR
+
+SELECT last_name, department_id
+FROM employees 
+WHERE hire_date > '&hire_date';                                                 -- NOT ERROR
+
+------------------------------------------------------------------------------------------------------------------ 
 
 SELECT employee_id, last_name, job_id, &column_name 
 FROM employees 
 WHERE &condition ORDER BY &order_column;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                         Variable de substitution no tiene que tener dentro de si misma espacios
+
+select employee_id, last_name, salary, department_id
+from employees
+where manager_id = &Manager_id
+order by &sort_from colum;                                                      -- ERROR
+
+select employee_id, last_name, salary, department_id
+from employees
+where manager_id = &Manager_id
+order by &sort_from_colum;                                                      -- NOT ERROR
 
 --==========================================================================================================================================================
 --================================================================================================================================= Using the DEFINE Command 
