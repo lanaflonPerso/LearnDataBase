@@ -118,6 +118,14 @@ select last_name, hire_date
 from employees 
 where hire_date = '17-jun-03';
 
+------------------------------------------------------------------------------------------------------------------
+
+-- Como se puede usar dos condinciones ala ves
+select last_name "Employee", salary "Monthly Salary"  
+from employees 
+where (salary between 5000 and 12000)
+and (department_id = 20 or department_id = 50);
+
 --==========================================================================================================================================================
 --=============================================================================================================================================== Conditions
 --==========================================================================================================================================================
@@ -273,6 +281,8 @@ select last_name
 from employees 
 where last_name like '%_%';
 
+------------------------------------------------------------------------------------------------------------------
+
 -- screening экранирование
 -- Screening, pero no me funcciona estos exemplos.
 select first_name 
@@ -286,6 +296,16 @@ where first_name like '%/%%'; escape '\';
 select first_name 
 from employees 
 where first_name like '%1_%'; escape '1';
+
+------------------------------------------------------------------------------------------------------------------
+
+select last_name, job_id, hire_date
+from employees
+where last_name like'Matos' or like 'Taylor';                                   -- ERROR
+
+select last_name, job_id, hire_date
+from employees
+where last_name like'Matos' or last_name like 'Taylor';                         -- NOT ERROR
 
 --==========================================================================================================================================================
 --===================================================================================================================================================== NULL 
@@ -317,7 +337,7 @@ select last_name, salary, commission_pct, 12 * salary as "Salary year",
 -- ser String concatenado con espacio en blanco. Ejamplo abajo.
 select last_name || ', ' || commission_pct || ',' from employees;
 
--- ------------------------------------------------------------------------------------------------------------------ substr() con campos NULL 
+------------------------------------------------------------------------------------------------------------------ substr() con campos NULL 
 select last_name, substr(commission_pct, 1) from employees;
 select last_name, substr(commission_pct, 1, 3) from employees;
 -- Atencion
@@ -485,6 +505,8 @@ select last_name, job_id, department_id, hire_date
 from employees 
 order by hire_date desc;
 
+------------------------------------------------------------------------------------------------------------------ 
+
 -- ORDER BY se pone al final de la query(expression)
 select employee_id, last_name, job_id, salary
 from employees 
@@ -497,6 +519,8 @@ from employees
 where salary >=  6000 
 order by salary and last_name like 'G%';                                        -- Error
 
+------------------------------------------------------------------------------------------------------------------ 
+
 -- Se permite ordenar reusltados por varias cosas. Ejemplo abajo. 
 select last_name, job_id, salary, department_id 
 from employees 
@@ -505,14 +529,14 @@ order by department_id, salary desc;
 select last_name, job_id, salary, department_id from employees 
 order by department_id desc, salary desc;
 
+------------------------------------------------------------------------------------------------------------------ 
+
 -- Se permite ordenar por campo que no se encuentra en select, por ejemplo job_id
 select last_name, salary 
 from employees 
 order by job_id;
 
-select last_name, job_id, salary 
-from employees 
-order by job_id;
+------------------------------------------------------------------------------------------------------------------ 
 
 -- Se permite usar alias con ORDER BY 
 select last_name, job_id, department_id, hire_date StartDate 
@@ -524,6 +548,8 @@ select last_name, job_id, department_id, hire_date StartDate
 from employees 
 order by hire_date; 
 
+------------------------------------------------------------------------------------------------------------------ 
+
 -- Tambien se puede usar numero de columna en ORDER BY. Por ejemplo la columna 
 -- hire_date se encuentra en puesto 4
 select last_name, job_id, department_id, hire_date StartDate
@@ -533,6 +559,8 @@ order by 4;
 select last_name, job_id, department_id, hire_date StartDate
 from employees 
 order by 3, 4;
+
+------------------------------------------------------------------------------------------------------------------ 
 
 -- Los values Nullos estan ultimos por defecto
 select last_name, job_id, department_id, hire_date StartDate 
@@ -548,6 +576,19 @@ order by department_id nulls last;
 select last_name, job_id, department_id, hire_date StartDate 
 from employees 
 order by department_id nulls first;
+
+------------------------------------------------------------------------------------------------------------------ 
+
+-- Palabra clave 'DESC' tiene que esta al final de ORDER BY
+select last_name, job_id, hire_date
+from employees
+where last_name like'Matos' or last_name like 'Taylor'
+order by desc hire_date;                                                        -- ERROR
+
+select last_name, job_id, hire_date
+from employees
+where last_name like'Matos' or last_name like 'Taylor'
+order by hire_date desc;                                                        -- NOT ERROR
 
 --==========================================================================================================================================================
 --==================================================================================================================================== Substitution Variable 
@@ -845,7 +886,9 @@ SELECT hire_date, to_char(hire_date, 'fmDD Month YYYY') HIREDATE FROM employees;
 SELECT hire_date, to_char(hire_date, 'DD MM YYYY') HIREDATE FROM employees;
 SELECT hire_date, to_char(hire_date, 'fmDD MM YYYY') HIREDATE FROM employees;
 
------------------------------------------------------------------------------------------------------------------- spht
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                            spht
+
 -- Ddspth
 SELECT hire_date, 
        to_char(hire_date, 'Ddspth "of" Month YYYY HH:MI:SS AM') HIREDATE 
@@ -871,7 +914,9 @@ SELECT hire_date,
        to_char(hire_date, 'Dd"of" Month YYYYsppth HH:MI:SS AM') HIREDATE 
 FROM employees;
 
------------------------------------------------------------------------------------------------------------------- sp
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                              sp
+
 -- Ddsp
 SELECT hire_date, 
        to_char(hire_date, 'Ddsp "of" Month YYYY HH:MI:SS AM') HIREDATE 
@@ -897,6 +942,8 @@ SELECT hire_date,
        to_char(hire_date, 'Dd"of" Month YYYYsp HH:MI:SS AM') HIREDATE 
 FROM employees;
 
+------------------------------------------------------------------------------------------------------------------ 
+
 -- fecha de servidor base datos
 select sysdate from dual; 
 
@@ -910,12 +957,17 @@ alter session set nls_date_format = 'dd-mm-yyyy hh24:mi:ss'
 -- al sevidor de base datos)
 select CURRENT_DATE from dual;   
 
-select to_char(sysdate, 'DD/MM/YYYY hh:mi:ss') from dual;
-select to_char(sysdate, 'dd-mm-yyyy hh24:mi:ss') from dual;
-
 SELECT SESSIONTIMEZONE, CURRENT_DATE FROM DUAL;
 
 SELECT SESSIONTIMEZONE, CURRENT_TIMESTAMP FROM DUAL;
+
+------------------------------------------------------------------------------------------------------------------ 
+
+select to_char(sysdate, 'DD/MM/YYYY hh:mi:ss') from dual;
+select to_char(sysdate, 'dd-mm-yyyy hh24:mi:ss') from dual;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                   Operaciones - + * / con fecha
 
 select sysdate, to_char(sysdate + 7, 'DD-Mon-YYYY hh24:mi:ss') from dual;
 select sysdate, to_char(sysdate - 7, 'DD-Mon-YYYY hh24:mi:ss') from dual;
@@ -946,6 +998,8 @@ select last_name, round((sysdate - hire_date) / 7), (sysdate - hire_date) / 7
 from employees 
 order by 2 desc;
 
+------------------------------------------------------------------------------------------------------------------ 
+
 select to_char(sysdate, 'hh:mi:ss') Time from dual;
 
 select to_char(sysdate, 'hh:mi:ss " Hora de descanso"') Time from dual;
@@ -966,19 +1020,39 @@ FROM employees;
 
 -- dd Dd DD mm Mm MM yyy Yyy YYy YYY
 
-
-SELECT last_name, hire_date FROM employees WHERE hire_date < '01-FEB-2008';
-
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                 Formatos de ano
 select to_date('01-JAN-1999', 'dd mm yyyy') from dual;
 select to_date('01-JAN-99', 'dd mm yy') from dual;
 select to_date('01-JAN-99', 'dd mm rr') from dual;
 select to_date('01-JAN-1999', 'dd mm rrrr') from dual;
 
-select last_name, hire_date from employees where hire_date > '01-JAN-1999';
-select last_name, hire_date from employees where hire_date > '01-JAN-99';
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                    Operacones <, <=, >, >=, =, <>, =! con fecha
+
+SELECT last_name, hire_date 
+FROM employees 
+WHERE hire_date < '01-FEB-2008';
+
+select last_name, hire_date 
+from employees 
+where hire_date > '01-JAN-1999';
+
+select last_name, hire_date 
+from employees 
+where hire_date > '01-JAN-99';
+
+select last_name, hire_date
+from employees
+where to_char(hire_date, 'yyyy') = '2006';
+
+------------------------------------------------------------------------------------------------------------------ 
 
 -- Distinct 
 select distinct hire_date from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+
 
 --==========================================================================================================================================================
 --====================================================================================================================================== Funcciones de Fecha 
