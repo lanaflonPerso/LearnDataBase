@@ -1536,6 +1536,15 @@ select count(distinct hire_date),
        sum(case to_char(hire_date, 'yyyy') when '2008' then 1 else 0 end) "2008"
 from employees;
 
+select job_id, 
+       sum(case department_id when 20 then salary else 0 end) "Dept 20",
+       sum(case department_id when 50 then salary else 0 end) "Dept 50",
+       sum(case department_id when 80 then salary else 0 end) "Dept 80",
+       sum(case department_id when 90 then salary else 0 end) "Dept 90",
+       sum(salary) "Total"
+from employees
+group by job_id;
+
 --==========================================================================================================================================================
 --======================================================================================================================================== DECODE Expression
 --==========================================================================================================================================================
@@ -1579,6 +1588,13 @@ select job_id,
        sum(salary) "Total"
 from employees
 group by job_id;
+
+select count(distinct hire_date), 
+       sum(decode(to_char(hire_date, 'yyyy'), '2005', 1, 0)) "2005",
+       sum(decode(to_char(hire_date, 'yyyy'), '2006', 1, 0)) "2006",
+       sum(decode(to_char(hire_date, 'yyyy'), '2007', 1, 0)) "2007",
+       sum(decode(to_char(hire_date, 'yyyy'), '2008', 1, 0)) "2008"
+from employees;
 
 --==========================================================================================================================================================
 --================================================================================================================================================= GROUP BY 
