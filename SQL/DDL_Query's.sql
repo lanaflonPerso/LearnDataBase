@@ -642,6 +642,23 @@ from employees
 where last_name like'Matos' or last_name like 'Taylor'
 order by hire_date desc;                                                        -- NOT ERROR
 
+------------------------------------------------------------------------------------------------------------------ 
+
+-- No estoy seguro pero cuando se usa 'GROUP BY', el 'ORDER BY' obligatorio 
+-- tiene que hacerse al grupo de resultados. Usando una funccion de grupos o 
+-- de cual quier otra manera.
+select manager_id, min(salary)
+from employees
+group by manager_id
+having manager_id is not null and min(salary) > 6000
+order by salary desc;                                                           -- ERORO
+
+select manager_id, min(salary)
+from employees
+group by manager_id
+having manager_id is not null and min(salary) > 6000
+order by min(salary) desc;                                                      -- NOT ERROR
+
 --==========================================================================================================================================================
 --==================================================================================================================================== Substitution Variable 
 --==========================================================================================================================================================
@@ -905,6 +922,7 @@ select 'HelloWorld', trim('H', 'HelloWorld') from dual;
 ------------------------------------------------------------------------------------------------------------------ REPLACE()
  select 'JACK and JUE', replace('JACK and JUE', 'J', 'BL') from dual;
  
+ select 'JACK and JUE', replace('JACK and JUE', 'J') from dual;
 
 ------------------------------------------------------------------------------------------------------------------ TO_CHAR()
 select last_name, salary, to_char(salary, '999G99D00') from employees;
@@ -1150,11 +1168,17 @@ select distinct hire_date from employees;
 --====================================================================================================================================== Funcciones de Fecha 
 --==========================================================================================================================================================
 
------------------------------------------------------------------------------------------------------------------- TO_CHAR()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                       TO_CHAR()
+
 select to_char(sysdate, 'd-dy-day') from dual;
 
 SELECT last_name, hire_date, 
        to_char(hire_date, 'DD Month YYYY') HIREDATE 
+FROM employees;
+
+SELECT last_name, hire_date, 
+       to_char(hire_date, 'YYYY') HIREDATE 
 FROM employees;
 
 select to_char(sysdate, 'hh:mi:ss') Time from dual;
@@ -1173,7 +1197,9 @@ select to_char(sysdate, 'dd-month-yyyy', 'nls_date_language=ukrainian') from dua
 select to_char(sysdate, 'dd-month-yyyy', 'nls_date_language=german') from dual;
 select to_char(sysdate, 'dd-month-yyyy', 'nls_date_language=french') from dual;
 
------------------------------------------------------------------------------------------------------------------- to_date()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                        to_date()
+
 -- Si hacer calculo con esta manera sale Error por no concidir formato de fecha
 select last_name, hire_date 
 from employees 
@@ -1190,27 +1216,37 @@ select last_name, hire_date
 from employees 
 where hire_date > to_date('10-03-1999', 'dd-mon-yyyy', 'nls_date_language=american');
 
------------------------------------------------------------------------------------------------------------------- months_between()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                 months_between()
+
 -- Cuantos meses cada empleado he trabajado en impresa
 select last_name, months_between(sysdate, hire_date) 
 from employees 
 order by 2 desc;
 
------------------------------------------------------------------------------------------------------------------- add_months()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                     add_months()
+
 select sysdate, add_months(sysdate, 3) from dual;
 
------------------------------------------------------------------------------------------------------------------- next_day()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                       next_day()
+
 -- jueves que viene
 select next_day(sysdate, 'thu') from dual;
 -- jueves pasado
 select next_day(sysdate, 'thu') from dual;
 
------------------------------------------------------------------------------------------------------------------- last_day()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                       last_day()
+
 -- devuelve ultimo dia de mes
 select last_day(sysdate) from dual;
 select last_day(sysdate + 2) from dual;
 
------------------------------------------------------------------------------------------------------------------- round()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                         round()
+
 -- round Year
 select to_char(round(sysdate, 'Year'), 'dd-mm-yyyy hh24:mi:ss'), 
        to_char(sysdate, 'dd-mm-yyyy hh24:mi:ss') 
@@ -1247,11 +1283,25 @@ select to_char(round(sysdate, 'ss'), 'dd-mm-yyyy hh:mi:ss'),
        to_char(sysdate, 'dd-mm-yyyy hh:mi:ss') 
 from dual;                                                                      -- Error 
 
------------------------------------------------------------------------------------------------------------------- trunc()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                          trunc()
 
------------------------------------------------------------------------------------------------------------------- substr() con fecha
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                              substr() con fecha
+
 select last_name, substr(hire_date, 1, 6) from employees;
 select last_name, substr(hire_date, 4) from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                              count() con fecha
+
+select count(distinct hire_date)
+from employees
+where hire_date = '01-FEB-2008';
+
+select count('2008')
+from employees;
 
 --==========================================================================================================================================================
 --================================================================================================================================================== Numeros 
@@ -1261,6 +1311,15 @@ select last_name, substr(hire_date, 4) from employees;
 
 -- Distinct 
 select distinct salary from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                              fm
+
+select salary, to_char(salary, 'fm$99,999.00') "Dream Salaries"
+from employees;
+
+select salary, to_char(salary, '$99,999.00') "Dream Salaries"
+from employees;
 
 --==========================================================================================================================================================
 --==================================================================================================================================== Funcciones de Numeros 
@@ -1273,7 +1332,9 @@ select distinct salary from employees;
 select to_char(round((salary / 7), 2), '99G999D99', 'nls_numeric_characters = '',.''') "Formated Salary" 
 from employees;
 
------------------------------------------------------------------------------------------------------------------- TO_CHAR()
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                       TO_CHAR()
+
 -- G = 
 -- D = 
 select last_name, salary, to_char(salary, '999G99D00') from employees;
@@ -1306,6 +1367,12 @@ select last_name, salary, to_char(salary, '999,99.00$') from employees;
 
 -- Atencion Error  ?????????
 select last_name, salary, to_char(salary, '999*99_00$') from employees;
+
+select salary, to_char(salary, 'fm$99,999.00') "Dream Salaries"
+from employees;
+
+select salary, to_char(salary, '$99,999.00') "Dream Salaries"
+from employees;
 
 ------------------------------------------------------------------------------------------------------------------ to_number()
 select to_number('34') from dual;
@@ -1370,6 +1437,18 @@ select last_name, commission_pct, nvl(to_char(commission_pct, '0.99'), 'no comm'
 from employees;
 
 select first_name, (salary * (1 + nvl(commission_pct, 0))) * 12 from employees;
+
+--------------------------------------------------------------------------------
+
+-- La ERROR sale aqui porque el campo 'commission_pct' es numerico y value por 
+-- defecto('No Commission') que estamos dando es character.
+select last_name, nvl(commission_pct, 'No Commission') "COMM"
+from employees;                                                                 -- ERROR
+ 
+ -- Para resolver esa ERROR tenecom que convetir value 'commission_pct' 
+-- al character
+select last_name, nvl(to_char(commission_pct), 'No Commission') "COMM"
+from employees;                                                                 -- NOT ERROR
 
 ------------------------------------------------------------------------------------------------------------------ NVL2()
 select last_name, salary, commission_pct, 
@@ -1439,12 +1518,22 @@ select last_name, job_id, salary,
               when 'SA_REP' then 1.20 * salary
   else salary end "REVISE SALARY"
 from employees;
+
 -- mismo resultado
 select last_name, job_id, salary, 
   case when job_id = 'IT_PROG' then 1.10 * salary
        when job_id = 'ST_CLERK' then 1.15 * salary
        when job_id = 'SA_REP' then 1.20 * salary
   else salary end "REVISE SALARY"
+from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+
+select count(distinct hire_date), 
+       sum(case to_char(hire_date, 'yyyy') when '2005' then 1 else 0 end) "2005",
+       sum(case to_char(hire_date, 'yyyy') when '2006' then 1 else 0 end) "2006",
+       sum(case to_char(hire_date, 'yyyy') when '2007' then 1 else 0 end) "2007",
+       sum(case to_char(hire_date, 'yyyy') when '2008' then 1 else 0 end) "2008"
 from employees;
 
 --==========================================================================================================================================================
@@ -1479,6 +1568,17 @@ select last_name, salary,trunc(salary / 2000, 0),
                     0.45) 
     "TAX_RATE"
 from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+
+select job_id, 
+       sum(decode(department_id, 20, salary)) "Dept 20",
+       sum(decode(department_id, 50, salary)) "Dept 50",
+       sum(decode(department_id, 80, salary)) "Dept 80",
+       sum(decode(department_id, 90, salary)) "Dept 90",
+       sum(salary) "Total"
+from employees
+group by job_id;
 
 --==========================================================================================================================================================
 --================================================================================================================================================= GROUP BY 
@@ -1863,7 +1963,8 @@ FROM employees;
 SELECT AVG(NVL(commission_pct, 0))
 FROM employees;
 
------------------------------------------------------------------------------------------------------------------- AVG
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             AVG
 
 -- Average value of 'n' elemnts, ignoring null values
 
@@ -1893,7 +1994,8 @@ select avg(commission_pct),
        sum(commission_pct)/count(*)  
 from employees; 
 
------------------------------------------------------------------------------------------------------------------- COUNT
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                           COUNT
 
 -- Number of rows, where expr evaluates to something other than null (count 
 -- all selected rows using *, including duplicates and rows with nulls)
@@ -1924,7 +2026,8 @@ select count(nvl(commission_pct, 0)) from employees;
 -- Distinct
 select count(distinct department_id) from employees;
 
------------------------------------------------------------------------------------------------------------------- MAX
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             MAX
 
 -- Maximum value of expr, ignoring null values
 
@@ -1949,7 +2052,8 @@ select max(commission_pct) from employees;                                      
 -- incluso campos nullos se puede hacer con esta manera
 select max(nvl(commission_pct, 0)) from employees;
 
------------------------------------------------------------------------------------------------------------------- MIN
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             MIN
 
 -- Minimum value of expr, ignoring null values
 
