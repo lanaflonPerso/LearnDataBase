@@ -2184,14 +2184,48 @@ select avg(to_number(salary)) from employees group by department_id;            
 --  join syntax that existed in the prior releases.
 --• The following slide discusses the SQL:1999 join syntax.
 
--- Prefiksu yvelichevayt skorost
--- FK = PK
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                               Qualifying Ambiguous Column Names
+
+
+-- Use table prefixes to qualify column names that are in multiple tables.
+-- Use table prefixes to increase the speed of parsing of the statement.
+-- Instead of full table name prefixes, use table aliases.
+-- Table alias gives a table a shorter name:
+--               Keeps SQL code smaller, uses less memory
+-- Use column aliases to distinguish columns that have identical names, but 
+-- reside in different tables.
+
+-- When joining two or more tables, you need to qualify the names of the columns 
+-- with the table name to avoid ambiguity. Without the table prefixes, the 
+-- DEPARTMENT_ID column in the SELECT list could be from either the DEPARTMENTS 
+-- table or the EMPLOYEES table. It is necessary to add the table prefix to 
+-- execute your query. If there are no common column names between the two 
+-- tables, there is no need to qualify the columns. However, using the table 
+-- prefix increases the speed of parsing of the statement, because you tell the 
+-- Oracle server exactly where to find the columns.
+-- However, qualifying column names with table names can be time consuming, 
+-- particularly if the table names are lengthy. Instead, you can use table 
+-- aliases. Just as a column alias gives a column another name, a table alias 
+-- gives a table another name. Table aliases help to keep SQL code smaller, 
+-- therefore, using less memory.
+-- The table name is specified in full, followed by a space, and then the table 
+-- alias. For example, the EMPLOYEES table can be given an alias of e, and the 
+-- DEPARTMENTS table an alias of d.
+
+-- Guidelines
+--• Table aliases can be up to 30 characters in length, but shorter aliases are 
+--  better thanlonger ones.
+--• If a table alias is used for a particular table name in the FROM clause, 
+--  that table alias must be substituted for the table name throughout the 
+--  SELECT statement.
+--• Table aliases should be meaningful.
+--• The table alias is valid for only the current SELECT statement.
+
 
 --==========================================================================================================================================================
 --============================================================================================================================================= NATURAL JOIN
 --==========================================================================================================================================================
-
--- NATURAL JOIN joins two tables based on the same column name
 
 -- The NATURAL JOIN clause is based on all the columns that have the same name 
 -- in two tables.
@@ -2204,10 +2238,11 @@ select avg(to_number(salary)) from employees group by department_id;            
 
 -- Note: The join can happen on only those columns that have the same names 
 -- and data types in both tables. If the columns have the same name but 
---  different data types, the NATURAL JOIN syntax causes an error.
+-- different data types, the NATURAL JOIN syntax causes an error.
 
--- NATURAL JOIN usa todos campos iguales en ambas tablas para hacer conneccion 
--- entre las tablas
+-- Natural joins use all columns with matching names and data types to join 
+-- the tables. The USING clause can be used to specify only those columns that 
+-- should be used for an equijoin.
 
 SELECT * 
 FROM employees 
@@ -2252,12 +2287,15 @@ where departments.location_id = 1400;                                           
 select l.city, d.department_name, location_id 
 from locations l 
 natural join departments d 
-where location_id = 1400;
+where location_id = 1400;                                                       -- NOT ERROR
 
 select locations.city, departments.department_name, location_id 
 from locations 
 natural join departments 
-where location_id = 1400;
+where location_id = 1400;                                                       -- NOT ERROR
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                        Applying Additional Conditions to a Join
 
 --==========================================================================================================================================================
 --==================================================================================================================================================== USING
@@ -2267,6 +2305,7 @@ where location_id = 1400;
 -- the USING clause to specify the columns for the equijoin.
 
 -- Use the USING clause to match only one column when more than one column matches.
+-- Usa USING en aquella queri donde su nesesita unir tablas solo con un campo
 
 -- Natural joins use all columns with matching names and data types to join 
 -- the tables. The USING clause can be used to specify only those columns that 
@@ -2324,13 +2363,13 @@ select l.city, d.department_name, location_id
 from locations l 
 join departments d 
 using(location_id) 
-where location_id = 1400;
+where location_id = 1400;                                                       -- NOT ERROR
 
 select locations.city, departments.department_name, location_id 
 from locations 
 join departments 
 using(location_id) 
-where location_id = 1400;
+where location_id = 1400;                                                       -- NOT ERROR
 
 
 -- Campo que se usa con USING, no se permite usar table prefix en cual quier
@@ -2362,67 +2401,124 @@ join departments
 using(location_id);
 
 ------------------------------------------------------------------------------------------------------------------
+--                                                                                        Creating Three-Way Joins
+
+SELECT e.employee_id, l.city, d.department_name
+FROM employees e
+JOIN departments d
+USING (department_id)
+JOIN locations l
+USING (location_id);
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                        Applying Additional Conditions to a Join
 
 
+SELECT l.city, d.department_name
+FROM locations l 
+JOIN departments d
+USING (location_id)
+WHERE location_id = 1400;
 
 
---==========================================================================================================================================================
---======================================================================================================================== Qualifying Ambiguous Column Names
---==========================================================================================================================================================
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
+--                     Estos dos exmplos no funccionan, tengo que revisar porque
+--                     Creocue error es por que los campos en ambas tablad tiene
+--                     mismo nombre. Y la queri no sabe a que tabla se refiren 
+--                     esta columna
 
--- Use table prefixes to qualify column names that are in multiple tables.
--- Use table prefixes to increase the speed of parsing of the statement.
--- Instead of full table name prefixes, use table aliases.
--- Table alias gives a table a shorter name:
---               Keeps SQL code smaller, uses less memory
--- Use column aliases to distinguish columns that have identical names, but 
--- reside in different tables.
+select e.employee_id, e.last_name, d.location_id
+from employees e join departments d 
+using(department_id) 
+and manager_id = 149;
 
--- When joining two or more tables, you need to qualify the names of the columns 
--- with the table name to avoid ambiguity. Without the table prefixes, the 
--- DEPARTMENT_ID column in the SELECT list could be from either the DEPARTMENTS 
--- table or the EMPLOYEES table. It is necessary to add the table prefix to 
--- execute your query. If there are no common column names between the two 
--- tables, there is no need to qualify the columns. However, using the table 
--- prefix increases the speed of parsing of the statement, because you tell the 
--- Oracle server exactly where to find the columns.
--- However, qualifying column names with table names can be time consuming, 
--- particularly if the table names are lengthy. Instead, you can use table 
--- aliases. Just as a column alias gives a column another name, a table alias 
--- gives a table another name. Table aliases help to keep SQL code smaller, 
--- therefore, using less memory.
--- The table name is specified in full, followed by a space, and then the table 
--- alias. For example, the EMPLOYEES table can be given an alias of e, and the 
--- DEPARTMENTS table an alias of d.
-
--- Guidelines
---• Table aliases can be up to 30 characters in length, but shorter aliases are 
---  better thanlonger ones.
---• If a table alias is used for a particular table name in the FROM clause, 
---  that table alias must be substituted for the table name throughout the 
---  SELECT statement.
---• Table aliases should be meaningful.
---• The table alias is valid for only the current SELECT statement.
+select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
+from employees e join departments d 
+on (e.department_id = d.department_id) 
+where e.manager_id = 149;
 
 --==========================================================================================================================================================
 --================================================================================================================================================== JOIN ON
 --==========================================================================================================================================================
 
--- Palabra clave 'ON' se puede usar cuando campos de 
--- relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por 
--- exemplo 'e.department_id' y 'd.depar_id' 
-select e.last_name, e.salary, d.department_name, d.department_id 
-from departments d 
-join employees e 
-on (e.department_id = d.department_id);
+-- The join condition for the natural join is basically an equijoin of all 
+-- columns with the same name.
+-- Use the ON clause to specify arbitrary conditions or specify columns to join.
+-- The join condition is separated from other search conditions.
+-- The ON clause makes code easy to understand.
 
+-- Use the ON clause to specify a join condition. With this, you can specify join 
+-- conditions separate from any search or filter conditions in the WHERE clause.
+
+-- Prefiksu yvelichevayt skorost
+-- FK = PK
+
+-- Note: When you use the Execute Statement icon to run the query, SQL Developer
+-- suffixes a ‘_1’ to differentiate between the two department_ids.
+
+------------------------------------------------------------------------------------------------------------------
+-- In this example, the DEPARTMENT_ID columns in the EMPLOYEES and DEPARTMENTS 
+-- table are joined using the ON clause. Wherever a department ID in the 
+-- EMPLOYEES table equals a department ID in the DEPARTMENTS table, the row is 
+-- returned. 
 select e.employee_id, e.last_name, e.department_id, d.department_id, 
        d.location_id 
 from employees e 
 join departments d 
 on(e.department_id = d.department_id);
 
--- Coneccion con tres tablas usando 'ON'
+------------------------------------------------------------------------------------------------------------------
+-- The table alias is necessary to qualify the matching column_names.
+
+select e.last_name, e.salary, department_name, department_id 
+from departments d 
+join employees e 
+on (e.department_id = d.department_id);                                         -- ERROR
+
+select e.last_name, e.salary, d.department_name, d.department_id 
+from departments d 
+join employees e 
+on (e.department_id = d.department_id);                                         -- NOT ERROR
+
+------------------------------------------------------------------------------------------------------------------
+-- You can also use the ON clause to join columns that have different names. 
+
+-- Palabra clave 'ON' se puede usar cuando campos de 
+-- relacion('ForenKey' y 'PrimaryKey') tienen diferentes nombres de campos por 
+-- exemplo 'e.department_id' y 'd.depar_id'
+-- Nosotros no tenemos tablas con differentes nombres de campos, 
+-- por eso usamos (e.department_id = d.department_id)
+select e.last_name, e.salary, d.department_name, d.department_id 
+from departments d 
+join employees e 
+on (e.department_id = d.department_id);
+
+------------------------------------------------------------------------------------------------------------------
+-- The parentheses around the joined columns, as in the example in the slide, 
+-- (e.department_id = d.department_id) is optional. 
+-- So, even ON e.department_id = d.department_id will work.
+
+select e.last_name, e.salary, d.department_name, d.department_id 
+from departments d 
+join employees e 
+on (e.department_id = d.department_id);                                         
+
+select e.last_name, e.salary, d.department_name, d.department_id 
+from departments d 
+join employees e 
+on e.department_id = d.department_id;                                           -- NOT ERROR
+
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                        Creating Three-Way Joins
+
+SELECT employee_id, city, department_name
+FROM employees e
+JOIN departments d
+ON d.department_id = e.department_id
+JOIN locations l
+ON d.location_id = l.location_id;
+
 select first_name ||' '|| last_name "Full Name", 
        department_name "Department", city 
 from employees e 
@@ -2431,7 +2527,16 @@ on d.department_id = e.department_id
 join locations l 
 on d.location_id = l.location_id;
 
--- Additional connection conditions
+------------------------------------------------------------------------------------------------------------------
+--                                                                        Applying Additional Conditions to a Join
+
+-- You can apply additional conditions to the join.
+-- The example shown performs a join on the EMPLOYEES and DEPARTMENTS tables 
+-- and, in addition, displays only employees who have a manager ID of 149. To 
+-- add additional conditions to the ON clause, you can add AND clauses. 
+-- Alternatively, you can use a WHERE clause to apply additional conditions.
+-- Both the queries produce the same output.
+
 select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
 from employees e join departments d 
 on (e.department_id = d.department_id) 
@@ -2440,7 +2545,7 @@ and e.manager_id = 149;
 select e.employee_id, e.last_name, e.department_id, d.department_id, d.location_id
 from employees e join departments d 
 on (e.department_id = d.department_id) 
-and e.manager_id = 149;
+where e.manager_id = 149;
 
 --==========================================================================================================================================================
 --========================================================================================================================= Ne iavnoe pereobrasovanie dannux 
