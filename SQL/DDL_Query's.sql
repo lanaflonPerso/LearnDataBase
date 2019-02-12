@@ -30,7 +30,7 @@ from employees;
 
 -- se permite poner un alias si usar palabra clave 'as'. Palabra clave 'as' no 
 -- es obligatoria.
-select last_name name 
+select last_name Name 
 from employees;
 
 -- Si hace falta guardar registro de letras en alias, alias tiene que estar 
@@ -90,6 +90,12 @@ select first_name || ' ' || commission_pct "Employee and Commission",
        commission_pct 
 from employees;
 
+select '<' || first_name || '' || commission_pct || '>' "Employee and Commission", 
+       commission_pct 
+from employees;
+
+select '<' || 'algo' || null || '>' from dual;
+
 --==========================================================================================================================================================
 --========================================================================================================================== Operaciones aritmetics: + - * / 
 --==========================================================================================================================================================
@@ -113,6 +119,9 @@ select 0 / 8 from dual;                                                         
 --==================================================================================================================================================== WHERE
 --==========================================================================================================================================================
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                            WHERE con Characters
+
 select last_name, department_id 
 from employees 
 where last_name = 'King';
@@ -125,6 +134,9 @@ select last_name, department_id
 from employees 
 where last_name = 'KING';
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                 WHERE con Fecha
+
 select last_name, hire_date 
 from employees 
 where hire_date = '17-JUN-03';
@@ -134,12 +146,29 @@ from employees
 where hire_date = '17-jun-03';
 
 ------------------------------------------------------------------------------------------------------------------
+--                                                                        Mas de dos condinciones en causula WHERE
 
 -- Como se puede usar dos condinciones a la ves
 select last_name "Employee", salary "Monthly Salary"  
 from employees 
 where (salary between 5000 and 12000)
 and (department_id = 20 or department_id = 50);
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                  WHERE con NULL
+
+select last_name, commission_pct  
+from employees 
+where commission_pct is null;
+
+select last_name, commission_pct  
+from employees 
+where commission_pct is not null;
+
+-- Campos por defecto se rellenen con NULL no con ZERO
+select last_name, commission_pct  
+from employees 
+where commission_pct = 0;
 
 --==========================================================================================================================================================
 --=============================================================================================================================================== Conditions
@@ -153,6 +182,9 @@ and (department_id = 20 or department_id = 50);
 --   <>
 --   !=
 --   ^=
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                         Condiciones con numeros
 
 --   <
 select last_name, salary 
@@ -189,6 +221,9 @@ select last_name, salary
 from employees 
 where salary ^=  17000;
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                           Condiciones con fecha
+
 select last_name, hire_date 
 from employees 
 where hire_date <= '17-jun-03';
@@ -201,6 +236,11 @@ select last_name, hire_date
 from employees 
 where hire_date > '17-jun-03';
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                      Condiciones con characters
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar informacion
+-- No se como funcciona
 -- ?????????????????
 select last_name, department_id 
 from employees 
@@ -214,9 +254,44 @@ select last_name, department_id
 from employees 
 where last_name <= 'King';
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                            Condiciones con NULL
+
+-- Condiciones no funccionen con NULL, como values por defecto
+select last_name, commission_pct 
+from employees 
+where commission_pct = null;
+
+select last_name, commission_pct 
+from employees 
+where commission_pct > null;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                            Condiciones con ZERO
+
+select last_name, commission_pct 
+from employees 
+where commission_pct <> 0;
+
+select last_name, commission_pct 
+from employees 
+where commission_pct != 0;
+
+select last_name, commission_pct 
+from employees 
+where commission_pct > 0;
+
+-- No sale ningun resultado, no funcciona
+select last_name, commission_pct 
+from employees 
+where commission_pct = 0;
+
 --==========================================================================================================================================================
 --================================================================================================================================================== BETWEEN
 --==========================================================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                             BETWEEN con numeros
 
 -- Van aparecer todos salary que se encuentren entere 10500 y 17000, incluso los 
 -- salary que estan igual al 10500 y 17000 
@@ -232,22 +307,68 @@ from employees
 where salary
 between 17000 and 10500;
 
+-- Aparecen todos resultados
 select last_name, salary 
 from employees 
 where salary 
 between -10 and 1000000000000000000;
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                               BETWEEN con fecha
+
+select last_name, hire_date 
+from employees 
+where hire_date
+between '17-jun-03' and '17-jun-04';
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                          BETWEEN con characters
+select last_name
+from employees 
+where last_name
+between 'Abel' and 'Grant';
+
+select last_name from employees;
+
 --==========================================================================================================================================================
 --======================================================================================================================================================= IN
 --==========================================================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                  IN con numeros
 
 select employee_id, last_name, salary, manager_id 
 from employees 
 where manager_id in(100, 101, 201);
 
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                   IN con fechas
+
+select last_name, hire_date 
+from employees 
+where hire_date in('17-jun-03', '17-oct-03 ', '17-sep-03');
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                               IN con characters
+
+select last_name 
+from employees 
+where last_name in('King', 'Rajs', 'Whalen');
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                   IN con nullos
+
+-- IN con nullos no funcciona 
+select last_name, commission_pct 
+from employees 
+where commission_pct in(null);
+
 --==========================================================================================================================================================
 --===================================================================================================================================================== LIKE 
 --==========================================================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                             LIKE con characters
 
 select last_name from employees where last_name like 'K%';
 
@@ -279,6 +400,10 @@ select last_name, salary
 from employees 
 where salary like '_6%';
 
+select last_name, commission_pct 
+from employees 
+where commission_pct like '0.2';
+
 ------------------------------------------------------------------------------------------------------------------
 --                                                                                                  LIKE con Fecha
 
@@ -298,20 +423,28 @@ where hire_date like '_______04%';
 ------------------------------------------------------------------------------------------------------------------
 --                                                                                                 LIKE con NULLOS
 
--- No se permite buscar los canopos Nullos. Los campos nullos se buscan con 
--- palabras claves 'IS NULL' y 'IS NOT NULL'
+-- No se permite buscar los canopos Nullos con LIKE. Los campos nullos se buscan
+--con palabras claves 'IS NULL' y 'IS NOT NULL'
 select last_name, commission_pct 
 from employees 
-where commission_pst like 'Null';                                               -- Error
+where commission_pct like 'Null';                                               
 
 select last_name, commission_pct 
 from employees 
-where commission_pst like 'null';                                               -- Error
+where commission_pct like 'null';                                               
+
+select last_name, commission_pct 
+from employees 
+where commission_pct like ' ';
 
 ------------------------------------------------------------------------------------------------------------------
 
 -- Interesante cosa, nos sale output casi de todos empleados.
 select last_name 
+from employees 
+where last_name like '%_%';
+
+select '<' || last_name || '>'
 from employees 
 where last_name like '%_%';
 
