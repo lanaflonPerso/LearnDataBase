@@ -290,6 +290,10 @@ where commission_pct = 0;
 --================================================================================================================================================== BETWEEN
 --==========================================================================================================================================================
 
+-- Remember to specify the low value first and the high value last when using 
+-- the BETWEEN condition. The Oracle server translates the BETWEEN condition to 
+-- a pair of AND conditions.
+
 ------------------------------------------------------------------------------------------------------------------
 --                                                                                             BETWEEN con numeros
 
@@ -2333,9 +2337,27 @@ select avg(to_number(salary)) from employees group by department_id;            
 --  join syntax that existed in the prior releases.
 --• The following slide discusses the SQL:1999 join syntax.
 
------------------------------------------------------------------------------------------------------------------- 
---                                                                               Qualifying Ambiguous Column Names
+-- Types of Joins:
+--      • Equijoins
+--      • Nonequijoins
+--      • OUTER joins
+--               • Self-joins
+--               • Cross joins
+--               • Natural joins
+--               •Full (or two-sided) OUTER joins
 
+--==========================================================================================================================================================
+--============================================================================================================================================ Table Aliases
+--==========================================================================================================================================================
+
+-- Table Aliases:
+--           • Table aliases speed up database access.
+--           • They can help to keep SQL code smaller by conserving memory.
+--           • They are sometimes mandatory to avoid column ambiguity.
+
+--==========================================================================================================================================================
+--======================================================================================================================== Qualifying Ambiguous Column Names
+--==========================================================================================================================================================
 
 -- Use table prefixes to qualify column names that are in multiple tables.
 -- Use table prefixes to increase the speed of parsing of the statement.
@@ -2697,24 +2719,256 @@ on (e.department_id = d.department_id)
 where e.manager_id = 149;
 
 --==========================================================================================================================================================
---================================================================================================================================= Implicit data conversion 
+--=============================================================================================================================================== Self Joins
 --==========================================================================================================================================================
-select 1 + '3' from dual;
 
-select 1 ||  ' algun cantidad de characteres ' || 45 from dual;
+------------------------------------------------------------------------------------------------------------------
+--                                                                                  Self-Joins Using the ON Clause
 
-select * from employees where hire_date > '01-jan-2007';
+-- The ON clause can also be used to join columns that have different names, 
+-- within the same table or in a different table.
 
--- Atencion aqui, hay que poner la fecha en formato que esta puesto en ajustes
-select * from employees where hire_date > '01-01-2007';
+-- The example shown is a self-join of the EMPLOYEES table, based on the 
+-- EMPLOYEE_ID and MANAGER_ID columns.
+
+SELECT worker.last_name emp, manager.last_name mgr
+FROM employees worker 
+JOIN employees manager
+ON(worker.manager_id = manager.employee_id);
 
 --==========================================================================================================================================================
---================================================================================================================================================ Sub Qurys
+--============================================================================================================================================= Nonequijoins
 --==========================================================================================================================================================
+
+-- A nonequijoin is a join condition containing something other than an equality 
+-- operator.
+-- The relationship between the EMPLOYEES table and the JOB_GRADES table is an 
+-- example of a nonequijoin. The SALARY column in the EMPLOYEES table ranges 
+-- between the values in the LOWEST_SAL and HIGHEST_SAL columns of the 
+-- JOB_GRADES table. Therefore, each employee can be graded based on their salary. 
+-- The relationship is obtained using an operator other than the 
+-- equality (=) operator
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                  Self-Joins Using the ON Clause
+
+-- Note: 
+--       Other conditions (such as <= and >=) can be used, but BETWEEN is the 
+--       simplest.
+
+--       Remember to specify the low value first and the high value last when 
+--       using the BETWEEN condition. The Oracle server translates the BETWEEN 
+--       condition to a pair of AND conditions.
+
+--       Therefore, using BETWEEN has no performance benefits, but should be 
+--       used only for logical simplicity.
+
+--       Table aliases have been specified in the slide example for performance 
+--       reasons, not because of possible ambiguity.
+
+
+-- The example in the slide creates a nonequijoin to evaluate an employee’s 
+-- salary grade. The salary must be between any pair of the low and high salary 
+-- ranges.
+
+-- It is important to note that all employees appear exactly once when this 
+-- query is executed. No employee is repeated in the list. There are two 
+-- reasons for this:
+--         • None of the rows in the JOB_GRADES table contain grades that 
+--           overlap. That is, the salary value for an employee can lie only 
+--           between the low-salary and high-salary values of one of the rows 
+--           in the salary grade table.
+--         • All of the employees’ salaries lie within the limits provided by 
+--           the job grade table. That is, no employee earns less than the lowest 
+--           value contained in the LOWEST_SAL column or more than the highest 
+--           value contained in the HIGHEST_SAL column.
+
+SELECT e.last_name, e.salary, j.grade_level
+FROM employees e 
+JOIN job_grades j
+ON e.salary
+BETWEEN j.lowest_sal AND j.highest_sal;
+
+select * from job_grades; 
+
+
+--==========================================================================================================================================================
+--=============================================================================================================================================== OUTER JOIN
+--==========================================================================================================================================================
+
+-- In SQL:1999, the join of two tables returning only matched rows is called 
+-- an INNER join.
+
+-- A join between two tables that returns the results of the INNER join as well 
+-- as the unmatched rows from the left (or right) table is called a left 
+-- (or right) OUTER join.
+
+-- A join between two tables that returns the results of an INNER join as well 
+-- as the results of a left and right join is a full OUTER join.
+
+-- Joining tables with the NATURAL JOIN, USING, or ON clauses results in an 
+-- INNER join. Any unmatched rows are not displayed in the output. To return the 
+-- unmatched rows, you can use an OUTER join. An OUTER join returns all rows 
+-- that satisfy the join condition and also returns some or all of those rows 
+-- from one table for which no rows from the other table satisfy the join condition.
+
+--There are three types of OUTER joins:
+--                LEFT OUTER
+--                RIGHT OUTER
+--                FULL OUTER
+
+--==========================================================================================================================================================
+--========================================================================================================================================== LEFT OUTER JOIN
+--==========================================================================================================================================================
+
+-- This query retrieves all the rows in the EMPLOYEES table, which is the left 
+-- table, even if there is no match in the DEPARTMENTS table.
+SELECT e.last_name, e.department_id, d.department_name
+FROM employees e LEFT OUTER JOIN departments d
+ON(e.department_id = d.department_id) ;
+
+--==========================================================================================================================================================
+--========================================================================================================================================= RIGHT OUTER JOIN
+--==========================================================================================================================================================
+
+-- This query retrieves all the rows in the DEPARTMENTS table, which is the 
+-- table at the right, even if there is no match in the EMPLOYEES table.
+SELECT e.last_name, d.department_id, d.department_name
+FROM employees e RIGHT OUTER JOIN departments d
+ON(e.department_id = d.department_id) ;
+
+--==========================================================================================================================================================
+--========================================================================================================================================== FULL OUTER JOIN
+--==========================================================================================================================================================
+
+-- This query retrieves all rows in the EMPLOYEES table, even if there is no 
+-- match in the DEPARTMENTS table. 
+-- It also retrieves all rows in the DEPARTMENTS table, even if there is no
+-- match in the EMPLOYEES table.
+SELECT e.last_name, d.department_id, d.department_name
+FROM employees e FULL OUTER JOIN departments d
+ON(e.department_id = d.department_id) ;
+
+--==========================================================================================================================================================
+--======================================================================================================================================= Cartesian Products
+--==========================================================================================================================================================
+
+-- Cartesian product is a join of every row of one table to every row of 
+-- another table.
+
+-- A Cartesian product generates a large number of rows and the result is 
+-- rarely useful.
+
+-- A Cartesian product tends to generate a large number of rows and the result 
+-- is rarely useful.
+-- You should, therefore, always include a valid join condition unless you have 
+-- a specific need to combine all rows from all tables.
+-- Cartesian products are useful for some tests when you need to generate a large 
+-- number of rows to simulate a reasonable amount of data.
+
+-- A Cartesian product is generated if a join condition is omitted.
+
+-- Cartesian Products
+-- A Cartesian product results in the display of all combinations of rows. This 
+-- is done by either omitting the WHERE clause or specifying the CROSS JOIN clause.
+
+--==========================================================================================================================================================
+--============================================================================================================================================== Cross Joins
+--==========================================================================================================================================================
+
+-- A CROSS JOIN is a JOIN operation that produces the Cartesian product of two tables.
+-- To create a Cartesian product, specify the CROSS JOIN in your SELECT statement.
+
+-- The example in the slide produces a Cartesian product of the EMPLOYEES 
+-- and DEPARTMENTS tables.
+-- It is a good practice to explicitly state CROSS JOIN in your SELECT when you 
+-- intend to create a Cartesian product. Therefore, it is very clear that you 
+-- intend for this to happen and it is not the result of missing joins.
+SELECT last_name, department_name
+FROM employees
+CROSS JOIN departments ;
+
+--==========================================================================================================================================================
+--================================================================================================================================================= Subquery
+--==========================================================================================================================================================
+
+-- The inner query (or subquery) returns a value that is used by the outer 
+-- query (or main query).
+-- The execution plan of the query depends on the optimizer’s decision on the 
+-- structure of the subquery.
+
+-- The subquery (inner query) executes before the main query (outer query).
+-- The result of the subquery is used by the main query.
+
+-- A subquery is a SELECT statement that is embedded in the clause of another 
+-- SELECT statement. You can build powerful statements out of simple ones by 
+-- using subqueries. They can be very useful when you need to select rows from 
+-- a table with a condition that depends on the data in the table itself.
+
+-- You can place the subquery in a number of SQL clauses, including the following:
+--     • WHERE clause
+--     • HAVING clause
+--     • FROM clause
+
+-- In the syntax:
+-- operator includes a comparison condition such as >, =, or IN
+
+-- The subquery is often referred to as a nested SELECT, sub-SELECT, or 
+-- inner SELECT statement. The subquery generally executes first, and its output 
+-- is used to complete the query condition for the main (or outer) query.
+
+-- Rules and Guidelines for Using Subqueries:
+--        * Enclose subqueries in parentheses.
+--        * Place subqueries on the right side of the comparison condition for 
+--          readability. (However, the subquery can appear on either side of the 
+--          comparison operator.)
+--        * Use single-row operators with single-row subqueries and multiple-row 
+--          operators with multiple-row subqueries.
+
+-- • A subquery must be enclosed in parentheses.
+-- • Place the subquery on the right side of the comparison condition for 
+--   readability. However, the subquery can appear on either side of the 
+--   comparison operator.
+-- • Two classes of comparison conditions are used in subqueries: single-row 
+--   operators and multiple-row operators.
+
+-- • Single-row subqueries: Queries that return only one row from the inner 
+--   SELECT statement
+-- • Multiple-row subqueries: Queries that return more than one row from the 
+--   inner SELECT statement
+
+-- Note: There are also multiple-column subqueries, which are queries that 
+-- return more than one column from the inner SELECT statement. These are covered 
+-- in the Oracle Database: SQL Workshop II course.
+
+------------------------------------------------------------------------------------------------------------------ 
+
+-- In the slide, the inner query determines the hire date of the employee Davies. 
+-- The outer query takes the result of the inner query and uses this result to 
+-- display all the employees who were hired after Davies.
+-- Inner query return the result - 29-JAN-05
+SELECT last_name, hire_date
+FROM employees
+WHERE hire_date > (SELECT hire_date
+                   FROM employees
+                   WHERE last_name = 'Davies');
+
 -- Sub Query se puede usar en qual quier parte de select
 select (select sysdate from dual), (select current_date from dual) from dual;
 
------------------------------------------------------------------------------------------------------------------- Sub Querys que devolven un resultado
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                           Single-Row Subqueries
+
+-- * Return only one row
+-- * Use single-row comparison operators
+
+--  =   Equal to
+--  >   Greater than
+--  >=    Greater than or equal to
+--  <    Less than
+--  <=    Less than or equal to
+--  <>    Not equal to
+
 -- Aqui sub query devuelve un resultado. Y si sub query devuelve un reusltado 
 -- se permite usar operadores: >, =>, <, =<, <>, =! ...
 select last_name, department_id, job_id 
@@ -2729,7 +2983,9 @@ where manager_id = (select employee_id
                      from employees
                      where last_name = 'King');
 
------------------------------------------------------------------------------------------------------------------- Sub Querys que devolven varios resultado
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                        Sub Querys que devolven varios resultado
+
 -- Sub query que devuelve varios resultados no se permite usar 
 -- operacines: >, =>, <, =<, <>, =! ...
 
@@ -2771,6 +3027,18 @@ where department_id <= ALL (select department_id
 select(select sum(salary) from employees where department_id = 50),
       (select max(salary) from employees where department_id = 10) from dual;
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar informacion
+
+--==========================================================================================================================================================
+--================================================================================================================================= Implicit data conversion 
+--==========================================================================================================================================================
+select 1 + '3' from dual;
+
+select 1 ||  ' algun cantidad de characteres ' || 45 from dual;
+
+select * from employees where hire_date > '01-jan-2007';
+
+-- Atencion aqui, hay que poner la fecha en formato que esta puesto en ajustes
+select * from employees where hire_date > '01-01-2007';
 
 --==========================================================================================================================================================
 --=================================================================================================================================================== Others
