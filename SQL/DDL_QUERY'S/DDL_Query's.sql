@@ -2941,6 +2941,27 @@ CROSS JOIN departments ;
 -- return more than one column from the inner SELECT statement. These are covered 
 -- in the Oracle Database: SQL Workshop II course.
 
+--==========================================================================================================================================================
+--==================================================================================================================================== Single-Row Subqueries
+--==========================================================================================================================================================
+
+-- * Return only one row
+-- * Use single-row comparison operators
+
+-- A single-row subquery is one that returns one row from the inner SELECT 
+-- statement. This type of subquery uses a single-row operator. The slide gives 
+-- a list of single-row operators.
+
+-- Note: The outer and inner queries can get data from different tables.
+
+-- Single-Row Subcueries work for this conditon:
+--  =    Equal to
+--  >    Greater than
+--  >=   Greater than or equal to
+--  <    Less than
+--  <=   Less than or equal to
+--  <>   Not equal to
+
 ------------------------------------------------------------------------------------------------------------------ 
 
 -- In the slide, the inner query determines the hire date of the employee Davies. 
@@ -2956,19 +2977,6 @@ WHERE hire_date > (SELECT hire_date
 -- Sub Query se puede usar en qual quier parte de select
 select (select sysdate from dual), (select current_date from dual) from dual;
 
------------------------------------------------------------------------------------------------------------------- 
---                                                                                           Single-Row Subqueries
-
--- * Return only one row
--- * Use single-row comparison operators
-
---  =   Equal to
---  >   Greater than
---  >=    Greater than or equal to
---  <    Less than
---  <=    Less than or equal to
---  <>    Not equal to
-
 -- Aqui sub query devuelve un resultado. Y si sub query devuelve un reusltado 
 -- se permite usar operadores: >, =>, <, =<, <>, =! ...
 select last_name, department_id, job_id 
@@ -2977,6 +2985,13 @@ where employee_id = (select employee_id
                      from employees
                      where last_name = 'King');
                      
+-- Display the employees whose job ID is the same as that of employee 141:
+SELECT last_name, job_id
+FROM employees
+WHERE job_id = (SELECT job_id
+                FROM employees
+                WHERE employee_id = 141);
+                     
 select last_name, salary 
 from employees
 where manager_id = (select employee_id 
@@ -2984,7 +2999,52 @@ where manager_id = (select employee_id
                      where last_name = 'King');
 
 ------------------------------------------------------------------------------------------------------------------ 
---                                                                        Sub Querys que devolven varios resultado
+--                                                                                 Executing Single-Row Subqueries
+
+-- A SELECT statement can be considered as a query block. The example in the 
+-- slide displays employees who do the same job as “Taylor,” but earn more salary 
+-- than him.
+-- The example consists of three query blocks: the outer query and two inner 
+-- queries. The inner query blocks are executed first, producing the query 
+-- results SA_REP and 8600, respectively.
+-- The outer query block is then processed and uses the values that were 
+-- returned by the inner queries to complete its search conditions.
+-- Both inner queries return single values (SA_REP and 8600, respectively), so 
+-- this SQL statement is called a single-row subquery.
+
+--Note: The outer and inner queries can get data from different tables.
+
+
+-- First inner query return - SA_REP
+-- Second inner query return - 8600
+SELECT last_name, job_id, salary
+FROM employees
+WHERE job_id = (SELECT job_id
+                FROM employees
+                WHERE last_name = 'Taylor')
+AND salary > (SELECT salary
+              FROM employees
+              WHERE last_name = 'Taylor');
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                             Using Group Functions in a Subquery
+
+-- You can display data from a main query by using a group function in a subquery 
+-- to return a single row. The subquery is in parentheses and is placed after 
+-- the comparison condition.
+
+-- The example in the slide displays the employee last name, job ID, and salary 
+-- of all employees whose salary is equal to the minimum salary. The MIN group 
+-- function returns a single value (2500) to the outer query.
+-- Inner query return - 2500
+SELECT last_name, job_id, salary
+FROM employees
+WHERE salary = (SELECT MIN(salary)
+                FROM employees);
+
+--==========================================================================================================================================================
+--================================================================================================================================== Multiple-Row Subqueries
+--==========================================================================================================================================================
 
 -- Sub query que devuelve varios resultados no se permite usar 
 -- operacines: >, =>, <, =<, <>, =! ...
@@ -3027,6 +3087,9 @@ where department_id <= ALL (select department_id
 select(select sum(salary) from employees where department_id = 50),
       (select max(salary) from employees where department_id = 10) from dual;
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar informacion
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                             Using Group Functions in a Subquery
 
 --==========================================================================================================================================================
 --================================================================================================================================= Implicit data conversion 
