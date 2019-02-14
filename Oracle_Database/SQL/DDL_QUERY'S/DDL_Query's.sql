@@ -2892,6 +2892,10 @@ CROSS JOIN departments ;
 --================================================================================================================================================= Subquery
 --==========================================================================================================================================================
 
+-- Single-row subquerie
+-- Multiple-row subquerie
+-- Multiple-column subquerie
+
 -- The inner query (or subquery) returns a value that is used by the outer 
 -- query (or main query).
 -- The execution plan of the query depends on the optimizer’s decision on the 
@@ -2941,6 +2945,62 @@ CROSS JOIN departments ;
 -- return more than one column from the inner SELECT statement. These are covered 
 -- in the Oracle Database: SQL Workshop II course.
 
+-- A subquery is a SELECT statement that is embedded in the clause of another 
+-- SQL statement. Subqueries are useful when a query is based on a search 
+-- criterion with unknown intermediate values.
+
+-- Subqueries have the following characteristics:
+--     • Can pass one row of data to a main statement that contains a single-row 
+--       operator, such as =, <>, >, >=, <, or <=
+--     • Can pass multiple rows of data to a main statement that contains a 
+--       multiple-row operator, such as IN
+--     • Are processed first by the Oracle server, after which the WHERE or HAVING 
+--       clause uses the results
+--     • Can contain group functions
+
+
+-- For practice questions, you may want to create the inner query first. Make 
+-- sure that it runs and produces the data that you anticipate before you code 
+-- the outer query.
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                                       Null Values in a Subquery
+
+-- The SQL statement in the slide attempts to display all the employees who do 
+-- not have any subordinates. Logically, this SQL statement should have returned 
+-- 12 rows. However, the SQL statement does not return any rows. One of the 
+-- values returned by the inner query is a null value and, therefore, the entire 
+-- query returns no rows.
+-- The reason is that all conditions that compare a null value result in a null. 
+-- So whenever null values are likely to be part of the results set of a subquery, 
+-- do not use the NOT IN operator.
+-- The NOT IN operator is equivalent to <> ALL.
+-- Notice that the null value as part of the results set of a subquery is not a 
+-- problem if you use the IN operator. The IN operator is equivalent to =ANY. 
+
+-- Subquery returns no rows because one of the values returned by a subquery is null.
+SELECT emp.last_name
+FROM employees emp
+WHERE emp.employee_id NOT IN (SELECT mgr.manager_id
+                              FROM employees mgr);
+
+-- For example, to display the employees who have subordinates, use the 
+-- following SQL statement:
+SELECT mgr.manager_id
+FROM employees mgr;
+-- Inner query return: all values for managers
+SELECT emp.last_name
+FROM employees emp
+WHERE emp.employee_id IN (SELECT mgr.manager_id
+                          FROM employees mgr);
+                          
+-- Alternatively, a WHERE clause can be included in the subquery to display all 
+-- employees who do not have any subordinates:
+SELECT last_name, manager_id FROM employees
+WHERE employee_id NOT IN (SELECT manager_id
+                          FROM employees
+                          WHERE manager_id IS NOT NULL);
+                          
 --==========================================================================================================================================================
 --==================================================================================================================================== Single-Row Subqueries
 --==========================================================================================================================================================
@@ -3041,16 +3101,90 @@ SELECT last_name, job_id, salary
 FROM employees
 WHERE salary = (SELECT MIN(salary)
                 FROM employees);
+                
+------------------------------------------------------------------------------------------------------------------              
+--                                                                                   HAVING Clause with Subqueries
+-- Inner query return - 2500
+SELECT department_id, MIN(salary)
+FROM employees
+GROUP BY department_id
+HAVING MIN(salary) > (SELECT MIN(salary)
+                      FROM employees
+                      WHERE department_id = 20);
+                 
+                      
+SELECT job_id, AVG(salary)
+FROM employees
+GROUP BY job_id
+HAVING AVG(salary) = (SELECT MIN(AVG(salary))
+                      FROM employees
+                      GROUP BY job_id);
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                             No Rows Returned by the Inner Query
+
+-- Another common problem with subqueries occurs when no rows are returned by 
+-- the inner query.
+-- In the SQL statement in the slide, the subquery contains a WHERE clause. 
+-- Presumably, the intention is to find the employee whose name is Haas. The 
+-- statement is correct, but selects no rows when executed because there is no 
+-- employee named Haas. Therefore, the subquery returns no rows.
+-- The outer query takes the results of the subquery (null) and uses these 
+-- results in its WHERE clause. The outer query finds no employee with a job ID 
+-- equal to NULL, and so returns no rows. If a job existed with a value of null, 
+-- the row is not returned because comparison of two null values yields a null; 
+-- therefore, the WHERE condition is not true.
+
+SELECT last_name, job_id
+FROM employees
+WHERE job_id = (SELECT job_id
+                FROM employees
+                WHERE last_name = 'Haas');
 
 --==========================================================================================================================================================
 --================================================================================================================================== Multiple-Row Subqueries
 --==========================================================================================================================================================
+
+-- Return more than one row
+-- Use multiple-row comparison operators
+
+-- IN   Equal to any member in the list
+
+-- ANY  Must be preceded by = , != , > , < , <= , >= . Returns TRUE if at least 
+--      one element exists in the result set of the subquery for which the 
+--      relation is TRUE .
+
+-- ALL  Must be preceded by = , != , > , < , <= , >= . Returns TRUE if the 
+--      relation is TRUE for all elements in the result set of the subquery.
 
 -- Sub query que devuelve varios resultados no se permite usar 
 -- operacines: >, =>, <, =<, <>, =! ...
 
 -- En sub query que devuelve varios resultados solo se permite usar los 
 -- operdores: >, =>, <, =<, <>, =! ... con palabras claves 'ANY' y 'ALL'
+
+-- Subqueries that return more than one row are called multiple-row subqueries. 
+-- You use a multiple-row operator, instead of a single-row operator, with a 
+-- multiple-row subquery. 
+-- The multiple-row operator expects one or more values:
+
+SELECT last_name, salary, department_id
+FROM employees
+WHERE salary IN (SELECT MIN(salary)
+                 FROM employees
+                 GROUP BY department_id);
+                 
+-- Find the employees who earn the same salary as the minimum salary for each 
+-- department.
+-- The inner query is executed first, producing a query result. The main query 
+-- block is then processed and uses the values that were returned by the inner 
+-- query to complete its search condition. In fact, the main query appears to 
+-- the Oracle server as follows:
+
+SELECT last_name, salary, department_id
+FROM employees
+WHERE salary 
+IN (2500, 4200, 4400, 6000, 7000, 8300, 8600, 17000);
 
 -- Error. Segunda sub query devuelve varios resultados. Y con operador  '=' no 
 -- se puede comparar un registro con varos ala vez.
@@ -3059,6 +3193,33 @@ from employees
 where department_id = (select department_id
                        from departments
                        where location_id = 1700);                               -- ERROR
+                       
+-- A common error with subqueries occurs when more than one row is returned for 
+-- a single-row subquery.
+-- In the SQL statement in the slide, the subquery contains a GROUP BY clause, 
+-- which implies that the subquery will return multiple rows, one for each group 
+-- that it finds. In this case, the results of the subquery are 4400, 6000, 
+-- 2500, 4200, 7000, 17000, and 8300.
+-- The outer query takes those results and uses them in its WHERE clause. 
+-- The WHERE clause contains an equal (=) operator, a single-row comparison 
+-- operator that expects only one value.
+-- The = operator cannot accept more than one value from the subquery and, 
+-- therefore, generates the error.
+
+--To correct this error, change the = operator to IN.
+
+-- Single-row operator with multiple-row subquery                       
+SELECT employee_id, last_name
+FROM employees
+WHERE salary = (SELECT MIN(salary)
+                FROM employees
+                GROUP BY department_id);                                        --ERROR
+                       
+SELECT employee_id, last_name
+FROM employees
+WHERE salary in (SELECT MIN(salary)
+                FROM employees
+                GROUP BY department_id);                                        -- NOT ERROR
                        
 -- Con operadores: 'IN', 'ANY', 'ALL' se permite comparar un reusltado 
 -- con varios resultados    
@@ -3080,8 +3241,48 @@ where department_id <= ALL (select department_id
                        from departments
                        where location_id = 1700);                               
 
+------------------------------------------------------------------------------------------------------------------              
+--                                                               Using the ANY Operator in Multiple-Row Subqueries
 
+-- The ANY operator (and its synonym, the SOME operator) compares a value to 
+-- each value returned by a subquery. The slide example displays employees who 
+-- are not IT programmers and whose salary is less than that of any IT programmer. 
+-- The maximum salary that a programmer earns is $9,000.
+--       •  <ANY means less than the maximum.
+--       •  >ANY means more than the minimum.
+--       •  =ANY is equivalent to IN.
 
+-- Inner query return: 9000, 6000, 4200
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+WHERE salary < ANY (SELECT salary
+                    FROM employees
+                    WHERE job_id = 'IT_PROG')
+AND job_id <> 'IT_PROG';
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                               Using the ALL Operator in Multiple-Row Subqueries
+
+-- The ALL operator compares a value to every value returned by a subquery. The 
+-- example in the slide displays employees whose salary is less than the salary 
+-- of all employees with a job ID of IT_PROG and whose job is not IT_PROG.
+-- >ALL means more than the maximum and <ALL means less than the minimum.
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar informacion
+-- The NOT operator can be used with IN, ANY, and ALL operators.
+
+SELECT salary
+FROM employees
+WHERE job_id = 'IT_PROG';
+-- Inner query return: 9000, 6000, 4200
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+WHERE salary < ALL (SELECT salary
+                    FROM employees
+                    WHERE job_id = 'IT_PROG')
+AND job_id <> 'IT_PROG';
+
+------------------------------------------------------------------------------------------------------------------ 
 
 --Este ejamplo no funccion
 select(select sum(salary) from employees where department_id = 50),
@@ -3090,6 +3291,73 @@ select(select sum(salary) from employees where department_id = 50),
 
 ------------------------------------------------------------------------------------------------------------------              
 --                                                                             Using Group Functions in a Subquery
+
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                                   HAVING Clause with Subqueries
+
+
+------------------------------------------------------------------------------------------------------------------              
+--                                                                             No Rows Returned by the Inner Query
+
+-- Another common problem with subqueries occurs when no rows are returned by 
+-- the inner query.
+-- In the SQL statement in the slide, the subquery contains a WHERE clause. 
+-- Presumably, the intention is to find the employee whose name is Haas. The 
+-- statement is correct, but selects no rows when executed because there is no 
+-- employee named Haas. Therefore, the subquery returns no rows.
+-- The outer query takes the results of the subquery (null) and uses these 
+-- results in its WHERE clause. The outer query finds no employee with a job ID 
+-- equal to NULL, and so returns no rows. If a job existed with a value of null, 
+-- the row is not returned because comparison of two null values yields a null; 
+-- therefore, the WHERE condition is not true.
+
+SELECT job_id
+FROM employees
+WHERE last_name = 'Haas';
+-- Inner query return: Null
+SELECT last_name, job_id
+FROM employees
+WHERE job_id = (SELECT job_id
+                FROM employees
+                WHERE last_name = 'Haas');
+                
+--==========================================================================================================================================================
+--=============================================================================================================================== Multiple-Column Subqueries 
+--==========================================================================================================================================================
+
+-- A multiple-column subquery returns more than one column to the outer query.
+
+-- Column comparisons in multiple column comparisons can be pairwise or nonpairwise.
+
+-- A multiple-column subquery can also be used in the FROM clause of a SELECT statement.
+
+-- A multiple-column subquery returns more than one column to the outer query 
+-- and can be listed in the outer query’s FROM, WHERE, or HAVING clause.
+-- If you want to compare two or more columns, you must write a compound WHERE 
+-- clause using logical operators. Multiple-column subqueries enable you to 
+-- combine duplicate WHERE conditions into a single WHERE clause.
+-- IN operator is used to check a value within a set of values. The list of 
+-- values may come from the results returned by a subquery.
+
+-- The example in the slide is that of a multiple-column subquery because the 
+-- subquery returns more than one column.
+-- The inner query is executed first, and it returns the lowest salary and 
+-- department_id for each department. The main query block is then processed 
+-- and uses the values that were returned by the inner query to complete its 
+-- search condition.
+
+SELECT min(salary), department_id
+FROM employees
+GROUP BY department_id;
+-- Inner query return: 7000, 17000, 6000, 8300, 2500, 8600, 4200, 4400
+-- Display all the employees with the lowest salary in each department
+SELECT first_name, department_id, salary
+FROM employees
+WHERE (salary, department_id) IN (SELECT min(salary), department_id
+                                  FROM employees
+                                  GROUP BY department_id)
+ORDER BY department_id;
 
 --==========================================================================================================================================================
 --================================================================================================================================= Implicit data conversion 

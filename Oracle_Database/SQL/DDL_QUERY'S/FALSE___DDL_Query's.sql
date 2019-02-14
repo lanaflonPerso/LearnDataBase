@@ -3001,7 +3001,6 @@ WHERE employee_id NOT IN (SELECT manager_id
                           FROM employees
                           WHERE manager_id IS NOT NULL);
 
-
 --==========================================================================================================================================================
 --==================================================================================================================================== Single-Row Subqueries
 --==========================================================================================================================================================
@@ -3164,7 +3163,6 @@ WHERE job_id = (SELECT job_id
 -- En sub query que devuelve varios resultados solo se permite usar los 
 -- operdores: >, =>, <, =<, <>, =! ... con palabras claves 'ANY' y 'ALL'
 
-
 -- Subqueries that return more than one row are called multiple-row subqueries. 
 -- You use a multiple-row operator, instead of a single-row operator, with a 
 -- multiple-row subquery. 
@@ -3222,7 +3220,6 @@ FROM employees
 WHERE salary in (SELECT MIN(salary)
                 FROM employees
                 GROUP BY department_id);                                        -- NOT ERROR
-
                       
 -- Con operadores: 'IN', 'ANY', 'ALL' se permite comparar un reusltado 
 -- con varios resultados    
@@ -3342,7 +3339,6 @@ WHERE job_id = (SELECT job_id
 -- combine duplicate WHERE conditions into a single WHERE clause.
 -- IN operator is used to check a value within a set of values. The list of 
 -- values may come from the results returned by a subquery.
-
 
 -- The example in the slide is that of a multiple-column subquery because the 
 -- subquery returns more than one column.
