@@ -882,197 +882,332 @@ WHERE employee_id = &employee_num;
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre este ejemplo
 
 --==========================================================================================================================================================
---===================================================================================================================================== Single-Row Functions
+--========================================================================================================================================== CASE Expression
 --==========================================================================================================================================================
--- 'Single-row Functions' - funccionan por cada campo de columna que 
--- se indica en parametros de funccion
--- 'Functions Group' - funccionana por columna entera que se indica 
--- en parametros de funccion
+select last_name, department_id, salary, 
+  case department_id when 110 then 'Bestia'
+                     when 90 then 'Myu buenos'
+                     when 20 then 'Buenos'
+  else 'Mantas' end "Titulos"
+from employees;
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre esta funccion
 
--- Si usa funccion de 'Single-Row Functions' y funccion de 'Function Group' 
--- es obligatorio poner aquel parametro que se pasa al funccion 'single-row' 
--- tambien poner en GROUP BY
-select upper(last_name), max(salary) from employees;                            -- ERROR
-
-select upper(last_name), max(salary) 
-from employees 
-group by last_name;                                                             -- NOT ERROR
-
---==========================================================================================================================================================
---====================================================================================================================================== Funcciones de Chars
---==========================================================================================================================================================
-
------------------------------------------------------------------------------------------------------------------- LOWER()
-select 'SQL Course', lower('SQL Course') from dual;
-select last_name, lower(last_name) from employees;
-
------------------------------------------------------------------------------------------------------------------- UPPER()
-select 'SQL Course', upper('SQL Course') from dual;
-select last_name, upper(last_name), hire_date, 
-       upper(to_char(hire_date, 'dd month yyy')) 
+-- condition puede ser cualquiera 
+select last_name, job_id, salary, 
+  case job_id when 'IT_PROG' then 1.10 * salary
+              when 'ST_CLERK' then 1.15 * salary
+              when 'SA_REP' then 1.20 * salary
+  else salary end "REVISE SALARY"
 from employees;
 
------------------------------------------------------------------------------------------------------------------- INITCAP() 
-select 'SQL COUrse', initcap('SQL COUrse') from dual;
-select last_name, initcap(last_name) from employees;
+-- mismo resultado
+select last_name, job_id, salary, 
+  case when job_id = 'IT_PROG' then 1.10 * salary
+       when job_id = 'ST_CLERK' then 1.15 * salary
+       when job_id = 'SA_REP' then 1.20 * salary
+  else salary end "REVISE SALARY"
+from employees;
 
------------------------------------------------------------------------------------------------------------------- CONCAT()
-select concat('Hello ', 'World') from dual;
+------------------------------------------------------------------------------------------------------------------ 
 
-SELECT CONCAT(CONCAT(last_name, '''s job category is '), job_id) "Job" 
-FROM employees 
-WHERE SUBSTR(job_id, 4) = 'REP';
+select count(distinct hire_date), 
+       sum(case to_char(hire_date, 'yyyy') when '2005' then 1 else 0 end) "2005",
+       sum(case to_char(hire_date, 'yyyy') when '2006' then 1 else 0 end) "2006",
+       sum(case to_char(hire_date, 'yyyy') when '2007' then 1 else 0 end) "2007",
+       sum(case to_char(hire_date, 'yyyy') when '2008' then 1 else 0 end) "2008"
+from employees;
 
------------------------------------------------------------------------------------------------------------------- SUBSTR()
--- SUBSTR(literal, a, b)
--- 'literal' = es string desde donde se va sacrse substring
--- 'a' = la posicion por donde empesar, incluso la posicion 'a'
--- 'b' = cantidat de los chars que qieremos sacar
-select substr('HelloWorld', 0, 1) from dual;
-select substr('HelloWorld', 2, 1) from dual;
-select substr('HelloWorld', 2, 5) from dual;
-select substr('HelloWorld', 2, 6) from dual;
+select job_id, 
+       sum(case department_id when 20 then salary else 0 end) "Dept 20",
+       sum(case department_id when 50 then salary else 0 end) "Dept 50",
+       sum(case department_id when 80 then salary else 0 end) "Dept 80",
+       sum(case department_id when 90 then salary else 0 end) "Dept 90",
+       sum(salary) "Total"
+from employees
+group by job_id;
 
--- SUBSTR(literal, a)
--- 'literal' = es string desde donde se va sacrse substring
--- 'a' = la posicion por donde empesar (incluso la posicion 'a') hasta 
--- la final de literal  
-select substr('HelloWorld', 5) from dual;
-select substr('HelloWorld', 10) from dual;
-select substr('HelloWorld', 11) from dual;
+--==========================================================================================================================================================
+--======================================================================================================================================== DECODE Expression
+--==========================================================================================================================================================
+-- decode sravnevaet tolko na ravenstvo.
+-- decode compara solo de igualidad, no se permite poner 
+-- expressiones de <, <=, >, >= ...
+select job_id, decode(job_id,
+            'IT_PROG', 'Programador', 
+            'AD_PRES', 'Presidente', 
+            'NOT DEFINE') 
+from employees; 
 
--- substr() con campos NULL 
-select last_name, substr(commission_pct, 1) from employees;
-select last_name, substr(commission_pct, 1, 3) from employees;
--- Atencion
-select last_name, substr(commission_pct, 5) from employees;
+select last_name, job_id, salary, 
+     decode(job_id, 'IT_PROG', 1.10 * salary,
+                    'ST_CLERK', 1.15 * salary,
+                    'SA_REP', 1.20 * salary,
+                    salary) 
+    "REVISE SALARY"
+from employees;
 
--- substr() con los numero negativos en parametros
-select substr('​abcdefghijklmnñopqrstuvwxyz', -1, 1) from dual;
-select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 5) from dual;
-select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 4) from dual;
-select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 3) from dual;
--- Atencion aqui
-select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 7) from dual;
-select substr('​abcdefghijklmnñopqrstuvwxyz', -2, 5) from dual;
--->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre este ejemplo
+select last_name, salary,trunc(salary / 2000, 0), 
+     decode(trunc(salary / 2000, 0),
+                    0, 0.00,
+                    1, 0.09,
+                    2, 0.20,
+                    3, 0.30,
+                    4, 0.40,
+                    5, 0.42,
+                    6, 0.44,
+                    0.45) 
+    "TAX_RATE"
+from employees;
 
-SELECT employee_id, CONCAT(first_name, last_name) "NAME",
-LENGTH (last_name), INSTR(last_name, 'a') "Contains 'a'?"
+------------------------------------------------------------------------------------------------------------------ 
+
+select job_id, 
+       sum(decode(department_id, 20, salary)) "Dept 20",
+       sum(decode(department_id, 50, salary)) "Dept 50",
+       sum(decode(department_id, 80, salary)) "Dept 80",
+       sum(decode(department_id, 90, salary)) "Dept 90",
+       sum(salary) "Total"
+from employees
+group by job_id;
+
+select count(distinct hire_date), 
+       sum(decode(to_char(hire_date, 'yyyy'), '2005', 1, 0)) "2005",
+       sum(decode(to_char(hire_date, 'yyyy'), '2006', 1, 0)) "2006",
+       sum(decode(to_char(hire_date, 'yyyy'), '2007', 1, 0)) "2007",
+       sum(decode(to_char(hire_date, 'yyyy'), '2008', 1, 0)) "2008"
+from employees;
+
+--==========================================================================================================================================================
+--==================================================================================================================== Implicit and explicit data conversion 
+--==========================================================================================================================================================
+
+-- In addition to Oracle data types, columns of tables in an Oracle Database can 
+-- be defined by using the American National Standards Institute (ANSI), DB2, 
+-- and SQL/DS data types.
+-- However, the Oracle server internally converts such data types to Oracle data 
+-- types.
+
+-- In some cases, the Oracle server receives data of one data type where it 
+-- expects data of a different data type. When this happens, the Oracle server 
+-- can automatically convert the data to the expected data type. This data type 
+-- conversion can be done implicitly by the Oracle server or explicitly by the user.
+
+-- Implicit data type conversions work according to the rules explained in the 
+-- following slides.
+
+-- Explicit data type conversions are performed by using the conversion functions. 
+-- Conversion functions convert a value from one data type to another. Generally, 
+-- the form of the function names follows the convention data type TO data type. 
+-- The first data type is the input data type and the second data type is the output.
+
+-- Note: Although implicit data type conversion is available, it is recommended 
+-- that you do the explicit data type conversion to ensure the reliability of 
+-- your SQL statements.
+
+--==========================================================================================================================================================
+--============================================================================================================================ Implicit Data Type Conversion
+--==========================================================================================================================================================
+
+-- In expressions, the Oracle server can automatically convert the following:
+
+
+--      From                     To
+-- VARCHAR2 or CHAR            NUMBER
+-- VARCHAR2 or CHAR             DATE
+
+-- Oracle server can automatically perform data type conversion in an expression. 
+-- For example, the expression hire_date > '01-JAN-90' results in the implicit 
+-- conversion from the string '01-JAN-90' to a date. Therefore, a VARCHAR2 or CHAR 
+-- value can be implicitly converted to a number or date data type in an expression.
+
+-- Note: CHAR to NUMBER conversions succeed only if the character string 
+-- represents a valid number.
+
+select 1 + '3' from dual;
+
+select 1 ||  ' algun cantidad de characteres ' || 45 from dual;
+
+select * from employees where hire_date > '01-jan-2007';
+
+-- Atencion aqui, hay que poner la fecha en formato que esta puesto en ajustes
+select * from employees where hire_date > '01-01-2007';
+
+--==========================================================================================================================================================
+--============================================================================================================================ Explicit Data Type Conversion
+--==========================================================================================================================================================
+
+--SQL provides three functions to convert a value from one data type to another:
+
+-- TO_CHAR(number|date [, fmt [, nlsparams] ] )
+--                              Converts a number or date value to a VARCHAR2
+--                              character string with the format model fmt
+--                              Number conversion: The nlsparams
+--                              parameter specifies the following characters,
+--                              which are returned by number format elements:
+--                                  • Decimal character
+--                                  • Group separator
+--                                  • Local currency symbol
+--                                  • International currency symbol
+--                              If nlsparams or any other parameter is omitted,
+--                              this function uses the default parameter values
+--                              for the session.
+
+-- TO_NUMBER(char[,fmt[, nlsparams]])
+--                         Converts a character string containing digits to a
+--                         number in the format specified by the optional format
+--                         model fmt.
+--                         The nlsparams parameter has the same purpose in
+--                         this function as in the TO _ CHAR function for number
+--                         conversion.
+
+-- TO_DATE(char[,fmt[,nlsparams]])
+--                         Converts a character string representing a date to a
+--                         date value according to fmt that is specified. If fmt
+--                         is omitted, the format is DD-MON-YY.
+--                         The nlsparams parameter has the same purpose in
+--                         this function as in the TO _ CHAR function for date
+--                         conversion.
+
+-- Note: The list of functions mentioned in this lesson includes only some of 
+-- the available conversion functions.
+-- For more information, see the “Conversion Functions” section in 
+-- Oracle Database SQL Language Reference for 12c database.
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                           Using the TO_CHAR Function with Dates
+
+-- TO_CHAR(date[,'format_model'])
+
+-- The format model:
+--        • Must be enclosed within single quotation marks
+--        • Is case-sensitive
+--        • Can include any valid date format element
+--        • Has an fm element to remove padded blanks or suppress
+--          leading zeros
+--        • Is separated from the date value by a comma
+
+-- TO_CHAR converts a datetime data type to a value of VARCHAR2 data type in the 
+-- format specified by the format_model. A format model is a character literal 
+-- that describes the format of datetime stored in a character string. For example, 
+-- the datetime format model for the string '11-Nov-2000' is 'DD-Mon-YYYY'. 
+-- You can use the TO_CHAR function to convert a date from its default format to 
+-- the one that you specify.
+
+-- Guidelines
+--       • The format model must be enclosed within single quotation marks and 
+--         is case-sensitive.
+--       • The format model can include any valid date format element. But be 
+--         sure to separate the date value from the format model with a comma.
+--       • The names of days and months in the output are automatically padded 
+--         with blanks.
+--       • To remove padded blanks or to suppress leading zeros, use the fill 
+--         mode fm element.
+
+SELECT employee_id, TO_CHAR(hire_date, 'MM/YY') Month_Hired
 FROM employees
-WHERE SUBSTR(last_name, -1, 1) = 'n';
+WHERE last_name = 'Higgins';
 
------------------------------------------------------------------------------------------------------------------- LENGTH()
--- length(literal) con string
--- 'literal' = literal donde se va contar los chars
-select length('HelloWorld') from dual;
-select length('Hello World') from dual;
-select last_name, length(last_name) from employees;
+-- YYYY           Full year in numbers
+-- YEAR           Year spelled out (in English)
+-- MM             Two-digit value for the month
+-- MONTH          Full name of the month
+-- MON            Three-letter abbreviation of the month
+-- DY             Three-letter abbreviation of the day of the week
+-- DAY            Full name of the day of the week
+-- DD             Numeric day of the month
+
+-- Time elements format the time portion of the date:
+--           HH24:MI:SS AM            15:45:32 PM
+-- Add character strings by enclosing them within double quotation marks:
+--           DD "of" MONTH            12 of OCTOBER
+-- Number suffixes spell out numbers:
+--           ddspth                   fourteenth
+
+-- Use the formats that are listed in the following tables to display time 
+-- information and literals, and to change numerals to spelled numbers.
+--          AM or PM                 Meridian indicator
+--          A.M. or P.M.             Meridian indicator with periods
+--          HH or HH12               12 hour format
+--          HH24                     24 hour format
+--          MI                       Minute (0–59)
+--          SS                       Second (0–59)
+--          SSSSS                    Seconds past midnight (0–86399)
+
+--Other Formats:
+--          / . ,                    Punctuation is reproduced in the result.
+--         “of the”                  Quoted string is reproduced in the result.
+
+-- Specifying Suffixes to Influence Number Display
+
+--         TH                   Ordinal number (for example, DDTH for 4TH)
+--         SP                   Spelled-out number (for example, DDSP for FOUR)
+--         SPTH or THSP         Spelled-out ordinal numbers (for example, DDSPTH 
+--                              for FOURTH)
+
+SELECT last_name,
+       TO_CHAR(hire_date, 'fmDD Month YYYY') AS HIREDATE
+FROM employees;
+
+SELECT last_name,
+       TO_CHAR(hire_date, 'fmDdspth "of" Month YYYY fmHH:MI:SS AM') HIREDATE
+FROM employees;
+
+-- Notice: that the month follows the format model specified; in other words, the 
+-- first letter is capitalized and the rest are in lowercase.
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                         Using the TO_CHAR Function with Numbers
 
 
 
-select hire_date, length(hire_date) from employees;
-
-
-
-select commission_pct, length(commission_pct) from employees;
-
------------------------------------------------------------------------------------------------------------------- INSTR()
--- instr(a, b, c, d)
--- a = literal donde buscamos concidencias
--- b = literan que estamos buscando
--- c = posicion desde donde empesar la busqueda
--- d = que concidencia qieremos encontrar la primera o segunda o tresera o ...
-
-select instr('HelloWorld', 'W') from dual;
-
-select instr('HelloWorld', 'B') from dual;
-
-select instr('HelloWorld', 'Wo') from dual;
-
-select instr('HelloWorld', 'Wq') from dual;
-
-select instr('Hello World', 'o W') from dual;
-select instr('Hello World', 'oW') from dual;
-
-select instr('HelloWorld', 'HelloWorld') from dual;
-
-select instr('HelloWorld', '#HelloWorld') from dual;
-select instr('HelloWorld', 'HelloWorld#') from dual;
-
-select instr('#HelloWorld', 'HelloWorld') from dual;
-select instr('HelloWorld#', 'HelloWorld') from dual;
-
-select instr('HelloWorld', 'l', 1, 1) from dual;
-select instr('HelloWorld', 'l', 1, 2) from dual;
-select instr('HelloWorld', 'l', 1, 3) from dual;
-
-select instr('HelloWorld', 'l', 3, 1) from dual;
-select instr('HelloWorld', 'l', 3, 2) from dual;
-select instr('HelloWorld', 'l', 3, 3) from dual;
-
-select instr('HelloWorld', 'l', 4, 1) from dual;
-select instr('HelloWorld', 'l', 4, 2) from dual;
-select instr('HelloWorld', 'l', 4, 3) from dual;
-
-select instr('HelloWorld', 'l', 5, 1) from dual;
-select instr('HelloWorld', 'l', 5, 2) from dual;
-select instr('HelloWorld', 'l', 5, 3) from dual;
-
-select instr('fagrhrtjy*dkfeqwhjgnhgjdg*vfgerhthshd', '*', -10, 1) from dual;
-select instr('012*34567*89', '*', -4, 1) from dual;
-select instr('012*34567*89', '*', -3, 1) from dual;
-select instr('012*34567*89', '*', -2, 1) from dual;
-select instr('012*34567*89', '*', -2, 2) from dual;
-select instr('012*34567*89', '*', -1, 1) from dual;
-select instr('012*34567*89', '*', -1, 2) from dual;
------------------------------------------------------------------------------------------------------------------- LPAD()
-select lpad('Hello', 12, '*'), length(lpad('Hello', 12, '*')) from dual;
-select last_name, lpad(last_name, 10, '*') from employees;
--- Atencion aqui, se corta last_name por ejemplo Hartstein = Hartste
-select last_name, lpad(last_name, 7, '*') from employees;
-select last_name, lpad(last_name, 2, '*') from employees;
-
------------------------------------------------------------------------------------------------------------------- RPAD()
-select rpad('Hello', 12, '*'), length(rpad('Hello', 12, '*')) from dual;
-select last_name, rpad(last_name, 10, '*') from employees;
--- Atencion aqui, se corta last_name por ejemplo Hartstein = Hartste
-select last_name, rpad(last_name, 7, '*') from employees;
-select last_name, rpad(last_name, 2, '*') from employees;
-
------------------------------------------------------------------------------------------------------------------- TRIMP()
--- Atencion la funccion trim() solo permite quitra primer o ultimo char de 
--- literal, si este char existe en literal
-select 'HelloWorld', trim('H' FROM 'HelloWorld') from dual;
-select 'HelloWorld', trim('d' FROM 'HelloWorld') from dual;
-
-select 'qqqqABqqqqCqqq', trim('q' FROM 'qqqqABqqqqCqqq') from dual;
--- trim() por defecto elimina todos espacios en blanco por adelante de 
--- literal y por detras de 
--- literal. Espacion en medio de literal se quedan sin eliminar.
-select '   AB   C    ', trim('   AB   C    ') from dual;
-select '*' || '   AB   C    ' || '*', '*' || trim('   AB   C    ') || '*' 
-from dual;
--- Atencion asi no funcciona sale error
-select 'HelloWorld', trim('H', 'HelloWorld') from dual;  
-
------------------------------------------------------------------------------------------------------------------- REPLACE()
- select 'JACK and JUE', replace('JACK and JUE', 'J', 'BL') from dual;
- 
- select 'JACK and JUE', replace('JACK and JUE', 'J') from dual;
-
------------------------------------------------------------------------------------------------------------------- TO_CHAR()
-select last_name, salary, to_char(salary, '999G99D00') from employees;
-
--->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre como 
--- to_char() funcciona con charcteres y con los numeros
-
------------------------------------------------------------------------------------------------------------------- TO_DATE() 
--->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre este funccion
- 
 --==========================================================================================================================================================
 --==================================================================================================================================================== Fecha 
 --==========================================================================================================================================================
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                               Elements of the Date Format Model
+
+-- YYYY           Full year in numbers
+-- YEAR           Year spelled out (in English)
+-- MM             Two-digit value for the month
+-- MONTH          Full name of the month
+-- MON            Three-letter abbreviation of the month
+-- DY             Three-letter abbreviation of the day of the week
+-- DAY            Full name of the day of the week
+-- DD             Numeric day of the month
+
+-- Time elements format the time portion of the date:
+--           HH24:MI:SS AM            15:45:32 PM
+-- Add character strings by enclosing them within double quotation marks:
+--           DD "of" MONTH            12 of OCTOBER
+-- Number suffixes spell out numbers:
+--           ddspth                   fourteenth
+
+-- Use the formats that are listed in the following tables to display time 
+-- information and literals, and to change numerals to spelled numbers.
+--          AM or PM                 Meridian indicator
+--          A.M. or P.M.             Meridian indicator with periods
+--          HH or HH12               12 hour format
+--          HH24                     24 hour format
+--          MI                       Minute (0–59)
+--          SS                       Second (0–59)
+--          SSSSS                    Seconds past midnight (0–86399)
+
+--Other Formats:
+--          / . ,                    Punctuation is reproduced in the result.
+--         “of the”                  Quoted string is reproduced in the result.
+
+-- Specifying Suffixes to Influence Number Display
+
+--         TH                   Ordinal number (for example, DDTH for 4TH)
+--         SP                   Spelled-out number (for example, DDSP for FOUR)
+--         SPTH or THSP         Spelled-out ordinal numbers (for example, DDSPTH 
+--                              for FOURTH)
+
+-- Notice: that the month follows the format model specified; in other words, the 
+-- first letter is capitalized and the rest are in lowercase.
+
+--------------------------------------------------------------------------------------------------------------
 
 -- Note: If your database is remotely located in a different time zone, the 
 -- output will be the date for the operating system on which the database resides.
@@ -1114,7 +1249,8 @@ select to_char(to_date('01-Jan-50', 'DD-Mon-yy'), 'dd-mm-yyyy') from dual;      
 select to_char(to_date('01-Jan-49', 'DD-Mon-RR'), 'dd-mm-yyyy') from dual;       -- 2049 
 select to_char(to_date('01-Jan-49', 'DD-Mon-yy'), 'dd-mm-yyyy') from dual;       -- 2049
 
--- fx
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                              fx
 select last_name, hire_date from employees 
 where hire_date > to_date('01 - 01 - 2008', 'dd-mm-yyyy');                      -- not error
 
@@ -1127,7 +1263,8 @@ where hire_date > to_date('01-01-2008', 'fxdd-mm-yyyy');                        
 select last_name, hire_date from employees 
 where hire_date > to_date('01-JAN-2008', 'fxdd-mm-yyyy');                       -- error
 
--- fm
+------------------------------------------------------------------------------------------------------------------
+--                                                                                                              fm
 SELECT hire_date, to_char(hire_date, 'DD Month YYYY') HIREDATE FROM employees;
 SELECT hire_date, to_char(hire_date, 'fmDD Month YYYY') HIREDATE FROM employees;
 SELECT hire_date, to_char(hire_date, 'DD MM YYYY') HIREDATE FROM employees;
@@ -1301,6 +1438,43 @@ select distinct hire_date from employees;
 ------------------------------------------------------------------------------------------------------------------ 
 
 
+
+
+--==========================================================================================================================================================
+--================================================================================================================================================== Numeros 
+--==========================================================================================================================================================
+-- nls_lang=american_america   coneste ajuste se puede cambiar el 
+-- region de base datos
+
+-- Distinct 
+select distinct salary from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                              fm
+
+select salary, to_char(salary, 'fm$99,999.00') "Dream Salaries"
+from employees;
+
+select salary, to_char(salary, '$99,999.00') "Dream Salaries"
+from employees;
+
+--==========================================================================================================================================================
+--===================================================================================================================================== Single-Row Functions
+--==========================================================================================================================================================
+-- 'Single-row Functions' - funccionan por cada campo de columna que 
+-- se indica en parametros de funccion
+-- 'Functions Group' - funccionana por columna entera que se indica 
+-- en parametros de funccion
+
+-- Si usa funccion de 'Single-Row Functions' y funccion de 'Function Group' 
+-- es obligatorio poner aquel parametro que se pasa al funccion 'single-row' 
+-- tambien poner en GROUP BY
+select upper(last_name), max(salary) from employees;                            -- ERROR
+
+select upper(last_name), max(salary) 
+from employees 
+group by last_name;                                                             -- NOT ERROR
+
 --==========================================================================================================================================================
 --====================================================================================================================================== Funcciones de Fecha 
 --==========================================================================================================================================================
@@ -1441,22 +1615,176 @@ select count('2008')
 from employees;
 
 --==========================================================================================================================================================
---================================================================================================================================================== Numeros 
+--====================================================================================================================================== Funcciones de Chars
 --==========================================================================================================================================================
--- nls_lang=american_america   coneste ajuste se puede cambiar el 
--- region de base datos
 
--- Distinct 
-select distinct salary from employees;
+------------------------------------------------------------------------------------------------------------------ LOWER()
+select 'SQL Course', lower('SQL Course') from dual;
+select last_name, lower(last_name) from employees;
 
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                              fm
-
-select salary, to_char(salary, 'fm$99,999.00') "Dream Salaries"
+------------------------------------------------------------------------------------------------------------------ UPPER()
+select 'SQL Course', upper('SQL Course') from dual;
+select last_name, upper(last_name), hire_date, 
+       upper(to_char(hire_date, 'dd month yyy')) 
 from employees;
 
-select salary, to_char(salary, '$99,999.00') "Dream Salaries"
-from employees;
+------------------------------------------------------------------------------------------------------------------ INITCAP() 
+select 'SQL COUrse', initcap('SQL COUrse') from dual;
+select last_name, initcap(last_name) from employees;
+
+------------------------------------------------------------------------------------------------------------------ CONCAT()
+select concat('Hello ', 'World') from dual;
+
+SELECT CONCAT(CONCAT(last_name, '''s job category is '), job_id) "Job" 
+FROM employees 
+WHERE SUBSTR(job_id, 4) = 'REP';
+
+------------------------------------------------------------------------------------------------------------------ SUBSTR()
+-- SUBSTR(literal, a, b)
+-- 'literal' = es string desde donde se va sacrse substring
+-- 'a' = la posicion por donde empesar, incluso la posicion 'a'
+-- 'b' = cantidat de los chars que qieremos sacar
+select substr('HelloWorld', 0, 1) from dual;
+select substr('HelloWorld', 2, 1) from dual;
+select substr('HelloWorld', 2, 5) from dual;
+select substr('HelloWorld', 2, 6) from dual;
+
+-- SUBSTR(literal, a)
+-- 'literal' = es string desde donde se va sacrse substring
+-- 'a' = la posicion por donde empesar (incluso la posicion 'a') hasta 
+-- la final de literal  
+select substr('HelloWorld', 5) from dual;
+select substr('HelloWorld', 10) from dual;
+select substr('HelloWorld', 11) from dual;
+
+-- substr() con campos NULL 
+select last_name, substr(commission_pct, 1) from employees;
+select last_name, substr(commission_pct, 1, 3) from employees;
+-- Atencion
+select last_name, substr(commission_pct, 5) from employees;
+
+-- substr() con los numero negativos en parametros
+select substr('​abcdefghijklmnñopqrstuvwxyz', -1, 1) from dual;
+select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 5) from dual;
+select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 4) from dual;
+select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 3) from dual;
+-- Atencion aqui
+select substr('​abcdefghijklmnñopqrstuvwxyz', -5, 7) from dual;
+select substr('​abcdefghijklmnñopqrstuvwxyz', -2, 5) from dual;
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre este ejemplo
+
+SELECT employee_id, CONCAT(first_name, last_name) "NAME",
+LENGTH (last_name), INSTR(last_name, 'a') "Contains 'a'?"
+FROM employees
+WHERE SUBSTR(last_name, -1, 1) = 'n';
+
+------------------------------------------------------------------------------------------------------------------ LENGTH()
+-- length(literal) con string
+-- 'literal' = literal donde se va contar los chars
+select length('HelloWorld') from dual;
+select length('Hello World') from dual;
+select last_name, length(last_name) from employees;
+
+
+
+select hire_date, length(hire_date) from employees;
+
+
+
+select commission_pct, length(commission_pct) from employees;
+
+------------------------------------------------------------------------------------------------------------------ INSTR()
+-- instr(a, b, c, d)
+-- a = literal donde buscamos concidencias
+-- b = literan que estamos buscando
+-- c = posicion desde donde empesar la busqueda
+-- d = que concidencia qieremos encontrar la primera o segunda o tresera o ...
+
+select instr('HelloWorld', 'W') from dual;
+
+select instr('HelloWorld', 'B') from dual;
+
+select instr('HelloWorld', 'Wo') from dual;
+
+select instr('HelloWorld', 'Wq') from dual;
+
+select instr('Hello World', 'o W') from dual;
+select instr('Hello World', 'oW') from dual;
+
+select instr('HelloWorld', 'HelloWorld') from dual;
+
+select instr('HelloWorld', '#HelloWorld') from dual;
+select instr('HelloWorld', 'HelloWorld#') from dual;
+
+select instr('#HelloWorld', 'HelloWorld') from dual;
+select instr('HelloWorld#', 'HelloWorld') from dual;
+
+select instr('HelloWorld', 'l', 1, 1) from dual;
+select instr('HelloWorld', 'l', 1, 2) from dual;
+select instr('HelloWorld', 'l', 1, 3) from dual;
+
+select instr('HelloWorld', 'l', 3, 1) from dual;
+select instr('HelloWorld', 'l', 3, 2) from dual;
+select instr('HelloWorld', 'l', 3, 3) from dual;
+
+select instr('HelloWorld', 'l', 4, 1) from dual;
+select instr('HelloWorld', 'l', 4, 2) from dual;
+select instr('HelloWorld', 'l', 4, 3) from dual;
+
+select instr('HelloWorld', 'l', 5, 1) from dual;
+select instr('HelloWorld', 'l', 5, 2) from dual;
+select instr('HelloWorld', 'l', 5, 3) from dual;
+
+select instr('fagrhrtjy*dkfeqwhjgnhgjdg*vfgerhthshd', '*', -10, 1) from dual;
+select instr('012*34567*89', '*', -4, 1) from dual;
+select instr('012*34567*89', '*', -3, 1) from dual;
+select instr('012*34567*89', '*', -2, 1) from dual;
+select instr('012*34567*89', '*', -2, 2) from dual;
+select instr('012*34567*89', '*', -1, 1) from dual;
+select instr('012*34567*89', '*', -1, 2) from dual;
+------------------------------------------------------------------------------------------------------------------ LPAD()
+select lpad('Hello', 12, '*'), length(lpad('Hello', 12, '*')) from dual;
+select last_name, lpad(last_name, 10, '*') from employees;
+-- Atencion aqui, se corta last_name por ejemplo Hartstein = Hartste
+select last_name, lpad(last_name, 7, '*') from employees;
+select last_name, lpad(last_name, 2, '*') from employees;
+
+------------------------------------------------------------------------------------------------------------------ RPAD()
+select rpad('Hello', 12, '*'), length(rpad('Hello', 12, '*')) from dual;
+select last_name, rpad(last_name, 10, '*') from employees;
+-- Atencion aqui, se corta last_name por ejemplo Hartstein = Hartste
+select last_name, rpad(last_name, 7, '*') from employees;
+select last_name, rpad(last_name, 2, '*') from employees;
+
+------------------------------------------------------------------------------------------------------------------ TRIMP()
+-- Atencion la funccion trim() solo permite quitra primer o ultimo char de 
+-- literal, si este char existe en literal
+select 'HelloWorld', trim('H' FROM 'HelloWorld') from dual;
+select 'HelloWorld', trim('d' FROM 'HelloWorld') from dual;
+
+select 'qqqqABqqqqCqqq', trim('q' FROM 'qqqqABqqqqCqqq') from dual;
+-- trim() por defecto elimina todos espacios en blanco por adelante de 
+-- literal y por detras de 
+-- literal. Espacion en medio de literal se quedan sin eliminar.
+select '   AB   C    ', trim('   AB   C    ') from dual;
+select '*' || '   AB   C    ' || '*', '*' || trim('   AB   C    ') || '*' 
+from dual;
+-- Atencion asi no funcciona sale error
+select 'HelloWorld', trim('H', 'HelloWorld') from dual;  
+
+------------------------------------------------------------------------------------------------------------------ REPLACE()
+ select 'JACK and JUE', replace('JACK and JUE', 'J', 'BL') from dual;
+ 
+ select 'JACK and JUE', replace('JACK and JUE', 'J') from dual;
+
+------------------------------------------------------------------------------------------------------------------ TO_CHAR()
+select last_name, salary, to_char(salary, '999G99D00') from employees;
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre como 
+-- to_char() funcciona con charcteres y con los numeros
+
+------------------------------------------------------------------------------------------------------------------ TO_DATE() 
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre este funccion
 
 --==========================================================================================================================================================
 --==================================================================================================================================== Funcciones de Numeros 
@@ -1629,109 +1957,301 @@ select last_name, employee_id, manager_id, commission_pct,
 from employees;
 
 --==========================================================================================================================================================
---======================================================================================================================================== Nesting Functions
+--============================================================================================================================= Nesting Single-Row Functions
 --==========================================================================================================================================================
 
 SELECT last_name, UPPER(CONCAT(SUBSTR (LAST_NAME, 1, 8), '_US')) 
 FROM employees 
 WHERE department_id = 60;
 
-
 --==========================================================================================================================================================
---========================================================================================================================================== CASE Expression
+--========================================================================================================================================== Functions Group
 --==========================================================================================================================================================
-select last_name, department_id, salary, 
-  case department_id when 110 then 'Bestia'
-                     when 90 then 'Myu buenos'
-                     when 20 then 'Buenos'
-  else 'Mantas' end "Titulos"
-from employees;
--->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buscar mas informacion sobre esta funccion
 
--- condition puede ser cualquiera 
-select last_name, job_id, salary, 
-  case job_id when 'IT_PROG' then 1.10 * salary
-              when 'ST_CLERK' then 1.15 * salary
-              when 'SA_REP' then 1.20 * salary
-  else salary end "REVISE SALARY"
-from employees;
+-- Guidelines for using the group functions:
+--• DISTINCT makes the function consider only nonduplicate values; ALL makes it
+--  consider every value, including duplicates. The default is ALL and, 
+--  therefore, does not need to be specified.
+--• The data types for the functions with an expr argument may be CHAR, 
+--  VARCHAR2,NUMBER, or DATE.
+--• All group functions ignore null values. To substitute a value for null 
+--  values, use the NVL, NVL2, COALESCE, CASE, or DECODE functions.
 
--- mismo resultado
-select last_name, job_id, salary, 
-  case when job_id = 'IT_PROG' then 1.10 * salary
-       when job_id = 'ST_CLERK' then 1.15 * salary
-       when job_id = 'SA_REP' then 1.20 * salary
-  else salary end "REVISE SALARY"
-from employees;
+-- Group functions operate on sets of rows to give one result per group.
+
+-- Unlike single-row functions, group functions operate on sets of rows to give
+-- one result per group. These sets may comprise the entire table or the table 
+-- that is split into groups.
+
+-- All group functions ignore null values in the column.
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+
+-- 'Single-row Functions' - funccionan por cada campo de columna que se 
+-- indica en parametros de funccion
+
+-- 'Functions Group' - funccionana por columna entera que se indica en 
+-- parametros de funccion
+
+-- Se recomienda (para entender todas cosas) antes de estudiar las funciones 
+-- de agrupacion hay que estudiar GROUP BY
+
+-- Note: The AVG, SUM, VARIANCE, and STDDEV functions can be used only with 
+-- numeric data types. MAX and MIN cannot be used with LOB or LONG data types.
+
+-- You can also use the group function in the ORDER BY clause:
+SELECT department_id, AVG(salary)
+FROM employees
+GROUP BY department_id
+ORDER BY AVG(salary);
+
+------------------------------------------------------------------------------------------------------------------
+
+-- Si usamos en select una funccion de agrupacion o varias funciones de 
+-- agrupacion no es obligatorio poner GROUP BY
+select sum(salary) from employees;
+
+SELECT AVG(salary), MAX(salary), MIN(salary), SUM(salary)
+FROM employees;
+
+SELECT AVG(salary), MAX(salary), MIN(salary), SUM(salary), count(employee_id) 
+FROM employees 
+where job_id like '%REP%';
+
+-- Atencion ERROR. Si en select se usa una columna y alguna funccion de 
+-- agrupacion, es obligatorio usar GROUP BY
+select last_name, max(salary) from employees;                                   -- Atencion ERROR
+
+-- Aqui ya no nos sale ERROR
+select last_name, max(salary) from employees group by salary, last_name;        -- NOT ERROR
+
+-- Si usa funccion de 'Single-Row Functions' y funccion de 'Function Group' 
+-- es obligatorio poner aquel parametro 
+-- Que se pasa al funccion 'single-row' tambien poner en GROUP BY
+select upper(last_name), max(salary) from employees;                            -- ERROR
+select upper(last_name), max(salary) from employees group by last_name;         -- NOT ERROR
+
+-- No se permite usar 'FUNCTIONS GROUP' en causula 'WHERE'. Example abajo
+select department_id, avg(salary) 
+from employees 
+where avg(salaty) > 8000 
+group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                                                 Group Functions and Null Values
+
+-- All group functions ignore null values in the column.
+-- However, the NVL function forces group functions to include null values.
+
+-- Group functions ignore null values in the column:
+SELECT AVG(commission_pct)
+FROM employees;
+
+-- The NVL function forces group functions to include null values:
+SELECT AVG(NVL(commission_pct, 0))
+FROM employees;
 
 ------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             AVG
 
-select count(distinct hire_date), 
-       sum(case to_char(hire_date, 'yyyy') when '2005' then 1 else 0 end) "2005",
-       sum(case to_char(hire_date, 'yyyy') when '2006' then 1 else 0 end) "2006",
-       sum(case to_char(hire_date, 'yyyy') when '2007' then 1 else 0 end) "2007",
-       sum(case to_char(hire_date, 'yyyy') when '2008' then 1 else 0 end) "2008"
-from employees;
+-- Average value of 'n' elemnts, ignoring null values
 
-select job_id, 
-       sum(case department_id when 20 then salary else 0 end) "Dept 20",
-       sum(case department_id when 50 then salary else 0 end) "Dept 50",
-       sum(case department_id when 80 then salary else 0 end) "Dept 80",
-       sum(case department_id when 90 then salary else 0 end) "Dept 90",
-       sum(salary) "Total"
-from employees
-group by job_id;
+-- Cuando se calcula avg, los campos que estan rellnos de nullos no se cuntan
 
---==========================================================================================================================================================
---======================================================================================================================================== DECODE Expression
---==========================================================================================================================================================
--- decode sravnevaet tolko na ravenstvo.
--- decode compara solo de igualidad, no se permite poner 
--- expressiones de <, <=, >, >= ...
-select job_id, decode(job_id,
-            'IT_PROG', 'Programador', 
-            'AD_PRES', 'Presidente', 
-            'NOT DEFINE') 
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+select avg(salary) from employees;
+
+-- ERROR no permite value fecha
+select avg(hire_date) from employees;                                           -- ERROR  
+
+-- ERROR no permite value character
+select avg(last_name) from employees;                                           -- ERROR  
+
+-- AVG entre aquellas personas que tiene commission
+select avg(commission_pct) from employees;
+
+-- AVG entre todas personas de tabla, incluso aquella personas que no 
+-- tienen puesta la commission
+select avg(nvl(commission_pct,0)) from employees;
+
+-- otro exemplo mas
+select avg(commission_pct), 
+       sum(commission_pct)/count(commission_pct), 
+       sum(commission_pct)/count(*)  
 from employees; 
 
-select last_name, job_id, salary, 
-     decode(job_id, 'IT_PROG', 1.10 * salary,
-                    'ST_CLERK', 1.15 * salary,
-                    'SA_REP', 1.20 * salary,
-                    salary) 
-    "REVISE SALARY"
-from employees;
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                           COUNT
 
-select last_name, salary,trunc(salary / 2000, 0), 
-     decode(trunc(salary / 2000, 0),
-                    0, 0.00,
-                    1, 0.09,
-                    2, 0.20,
-                    3, 0.30,
-                    4, 0.40,
-                    5, 0.42,
-                    6, 0.44,
-                    0.45) 
-    "TAX_RATE"
-from employees;
+-- Number of rows, where expr evaluates to something other than null (count 
+-- all selected rows using *, including duplicates and rows with nulls)
+
+-- In contrast, COUNT(expr) returns the number of non-null values that are in 
+-- the column identified by expr.
+
+-- COUNT(DISTINCT expr) returns the number of unique, non-null values that are 
+-- in the column identified by expr.
+
+-- Devuelve cantidad de las filas(registros) en tabla
+select count(*) from employees;
+
+select count(*) from employees where department_id = 50;
+
+select count(employee_id) from employees;
+
+select count(hire_date) from employees;
+select count(last_name) from employees;
+
+-- ATENCION. Los campos nulos count() no cuenta
+select count(commission_pct) from employees;
+
+-- Para poder contar todos campos incluso nullos se puede hacer con esta manera
+-- Rellenando campos nulos con 'zero'
+select count(nvl(commission_pct, 0)) from employees;
+
+-- Distinct
+select count(distinct department_id) from employees;
 
 ------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             MAX
 
-select job_id, 
-       sum(decode(department_id, 20, salary)) "Dept 20",
-       sum(decode(department_id, 50, salary)) "Dept 50",
-       sum(decode(department_id, 80, salary)) "Dept 80",
-       sum(decode(department_id, 90, salary)) "Dept 90",
-       sum(salary) "Total"
-from employees
-group by job_id;
+-- Maximum value of expr, ignoring null values
 
-select count(distinct hire_date), 
-       sum(decode(to_char(hire_date, 'yyyy'), '2005', 1, 0)) "2005",
-       sum(decode(to_char(hire_date, 'yyyy'), '2006', 1, 0)) "2006",
-       sum(decode(to_char(hire_date, 'yyyy'), '2007', 1, 0)) "2007",
-       sum(decode(to_char(hire_date, 'yyyy'), '2008', 1, 0)) "2008"
-from employees;
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+-- You can use MIN and MAX for numeric, character, and date data types.
+
+-- You can use the MAX and MIN functions for numeric, character, and date data types.
+
+-- MAX and MIN cannot be used with LOB or LONG data types.
+
+select max(salary) from employees;
+select max(hire_date) from employees;
+select max(last_name) from employees;
+
+-- ATENCION. Los campos nulos MAX() no cuenta
+select max(commission_pct) from employees;                                      -- ATENCION
+
+-- Esto tiene poca importancia con funccion MAX(), para poder sacar todos campos 
+-- de esta columna 
+-- incluso campos nullos se puede hacer con esta manera
+select max(nvl(commission_pct, 0)) from employees;
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                                                                             MIN
+
+-- Minimum value of expr, ignoring null values
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+-- You can use MIN and MAX for numeric, character, and date data types.
+
+-- You can use the MAX and MIN functions for numeric, character, and date data types.
+
+-- MAX and MIN cannot be used with LOB or LONG data types.
+
+select min(salary) from employees;
+select min(hire_date) from employees;
+select min(last_name) from employees;
+
+-- ATENCION. Los campos nulos MIN() no cuenta
+select min(commission_pct) from employees;                                      -- ATENCION
+
+-- ATENCION CON ESTA INFORMACION, PUEDE SER FALSA
+-- Para poder resolver problema de campos nullos se puede resolve de 
+-- esta manera. Pero es mucho depende de la tarea: 
+--     1) Sacar minima comision de todos empleados que tiene comision puesta
+--     2) Sacar minima comision de todos empleados que tiene comision puesta, 
+--        y de aquellos que no tienen la comision puesta(Esta pregunta es 
+--        muy logica commission = 0)
+select min(nvl(commission_pct, 0)) from employees;
+
+------------------------------------------------------------------------------------------------------------------ SUM
+
+-- Sum values of n, ignoring null values
+
+-- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
+-- can store numeric data.
+
+select sum(salary) from employees;
+
+select sum(last_name) from employees;   -- ERROR no permite value character
+select sum(hire_date) from employees;   -- ERROR no permite value fecha
+
+select sum(salary) from employees where department_id = 50;
+
+select sum(commission_pct) from employees;
+
+------------------------------------------------------------------------------------------------------------------ LISTAGG
+
+-- Orders data within each group specified in the ORDER BY clause and then 
+-- concatenates the values of the measure column
+
+
+------------------------------------------------------------------------------------------------------------------ STDDEV
+
+-- Standard deviation of n, ignoring null values
+
+------------------------------------------------------------------------------------------------------------------ VARIANCE
+
+-- Variance of n, ignoring null values
+
+
+--==========================================================================================================================================================
+--================================================================================================================================== Nesting Group Functions
+--==========================================================================================================================================================
+-- Group functions can be nested to a depth of two functions.
+
+-- Display the maximum average salary
+select max(avg(salary)) 
+from employees 
+group by department_id;
+
+select avg(salary) 
+from employees 
+group by department_id;
+
+------------------------------------------------------------------------------------------------------------------
+--                                                       Group functions can be nested to a depth of two functions
+
+select max(avg(salary)) 
+from employees 
+group by department_id; 
+
+-- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
+-- ejemplo de abajo. No son 'Nesting Group Functions'.
+-- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
+-- funcciones no es 'Nesting Group Functions'. 
+-- En este tipo de 'conjunto funcciones' se puede poner cualquier cantida 
+-- de funciones.
+select round(avg(to_number(salary))) from employees;                            -- ATENCION AQUI No son 'Nesting Group Functions'
+
+select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions'
+
+------------------------------------------------------------------------------------------------------------------ 
+--                                                  That GROUP BY clause is mandatory when nesting group functions
+
+select max(avg(salary)) 
+from employees;                                                                 -- ERROR
+
+select max(avg(salary)) 
+from employees group by department_id;                                          -- NOT ERROR
+
+-- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
+-- ejemplo de abajo. No son 'Nesting Group Functions'.
+-- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
+-- funcciones no es 'Nesting Group Functions'
+-- En este tipo de 'conjunto funcciones' no es obligatorio poner GROUP BY
+select round(avg(salary)) from employees;                                       -- ATENCION AQUI No son 'Nesting Group Functions' 
+select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions' 
+select round(avg(salary)) from employees group by department_id;                -- ATENCION AQUI No son 'Nesting Group Functions'
+select avg(to_number(salary)) from employees group by department_id;            -- ATENCION AQUI No son 'Nesting Group Functions'
 
 --==========================================================================================================================================================
 --================================================================================================================================================= GROUP BY 
@@ -2026,295 +2546,6 @@ where job_id not like '%REP%'
 group by job_id 
 having sum(salary) > 13000 
 order by 2;
-
---==========================================================================================================================================================
---========================================================================================================================================== Functions Group
---==========================================================================================================================================================
-
--- Guidelines for using the group functions:
---• DISTINCT makes the function consider only nonduplicate values; ALL makes it
---  consider every value, including duplicates. The default is ALL and, 
---  therefore, does not need to be specified.
---• The data types for the functions with an expr argument may be CHAR, 
---  VARCHAR2,NUMBER, or DATE.
---• All group functions ignore null values. To substitute a value for null 
---  values, use the NVL, NVL2, COALESCE, CASE, or DECODE functions.
-
--- Group functions operate on sets of rows to give one result per group.
-
--- Unlike single-row functions, group functions operate on sets of rows to give
--- one result per group. These sets may comprise the entire table or the table 
--- that is split into groups.
-
--- All group functions ignore null values in the column.
-
--- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
--- can store numeric data.
-
-
--- 'Single-row Functions' - funccionan por cada campo de columna que se 
--- indica en parametros de funccion
-
--- 'Functions Group' - funccionana por columna entera que se indica en 
--- parametros de funccion
-
--- Se recomienda (para entender todas cosas) antes de estudiar las funciones 
--- de agrupacion hay que estudiar GROUP BY
-
--- Note: The AVG, SUM, VARIANCE, and STDDEV functions can be used only with 
--- numeric data types. MAX and MIN cannot be used with LOB or LONG data types.
-
--- You can also use the group function in the ORDER BY clause:
-SELECT department_id, AVG(salary)
-FROM employees
-GROUP BY department_id
-ORDER BY AVG(salary);
-
-------------------------------------------------------------------------------------------------------------------
-
--- Si usamos en select una funccion de agrupacion o varias funciones de 
--- agrupacion no es obligatorio poner GROUP BY
-select sum(salary) from employees;
-
-SELECT AVG(salary), MAX(salary), MIN(salary), SUM(salary)
-FROM employees;
-
-SELECT AVG(salary), MAX(salary), MIN(salary), SUM(salary), count(employee_id) 
-FROM employees 
-where job_id like '%REP%';
-
--- Atencion ERROR. Si en select se usa una columna y alguna funccion de 
--- agrupacion, es obligatorio usar GROUP BY
-select last_name, max(salary) from employees;                                   -- Atencion ERROR
-
--- Aqui ya no nos sale ERROR
-select last_name, max(salary) from employees group by salary, last_name;        -- NOT ERROR
-
--- Si usa funccion de 'Single-Row Functions' y funccion de 'Function Group' 
--- es obligatorio poner aquel parametro 
--- Que se pasa al funccion 'single-row' tambien poner en GROUP BY
-select upper(last_name), max(salary) from employees;                            -- ERROR
-select upper(last_name), max(salary) from employees group by last_name;         -- NOT ERROR
-
--- No se permite usar 'FUNCTIONS GROUP' en causula 'WHERE'. Example abajo
-select department_id, avg(salary) 
-from employees 
-where avg(salaty) > 8000 
-group by department_id;
-
-------------------------------------------------------------------------------------------------------------------
---                                                                                 Group Functions and Null Values
-
--- All group functions ignore null values in the column.
--- However, the NVL function forces group functions to include null values.
-
--- Group functions ignore null values in the column:
-SELECT AVG(commission_pct)
-FROM employees;
-
--- The NVL function forces group functions to include null values:
-SELECT AVG(NVL(commission_pct, 0))
-FROM employees;
-
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                             AVG
-
--- Average value of 'n' elemnts, ignoring null values
-
--- Cuando se calcula avg, los campos que estan rellnos de nullos no se cuntan
-
--- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
--- can store numeric data.
-
-select avg(salary) from employees;
-
--- ERROR no permite value fecha
-select avg(hire_date) from employees;                                           -- ERROR  
-
--- ERROR no permite value character
-select avg(last_name) from employees;                                           -- ERROR  
-
--- AVG entre aquellas personas que tiene commission
-select avg(commission_pct) from employees;
-
--- AVG entre todas personas de tabla, incluso aquella personas que no 
--- tienen puesta la commission
-select avg(nvl(commission_pct,0)) from employees;
-
--- otro exemplo mas
-select avg(commission_pct), 
-       sum(commission_pct)/count(commission_pct), 
-       sum(commission_pct)/count(*)  
-from employees; 
-
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                           COUNT
-
--- Number of rows, where expr evaluates to something other than null (count 
--- all selected rows using *, including duplicates and rows with nulls)
-
--- In contrast, COUNT(expr) returns the number of non-null values that are in 
--- the column identified by expr.
-
--- COUNT(DISTINCT expr) returns the number of unique, non-null values that are 
--- in the column identified by expr.
-
--- Devuelve cantidad de las filas(registros) en tabla
-select count(*) from employees;
-
-select count(*) from employees where department_id = 50;
-
-select count(employee_id) from employees;
-
-select count(hire_date) from employees;
-select count(last_name) from employees;
-
--- ATENCION. Los campos nulos count() no cuenta
-select count(commission_pct) from employees;
-
--- Para poder contar todos campos incluso nullos se puede hacer con esta manera
--- Rellenando campos nulos con 'zero'
-select count(nvl(commission_pct, 0)) from employees;
-
--- Distinct
-select count(distinct department_id) from employees;
-
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                             MAX
-
--- Maximum value of expr, ignoring null values
-
--- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
--- can store numeric data.
-
--- You can use MIN and MAX for numeric, character, and date data types.
-
--- You can use the MAX and MIN functions for numeric, character, and date data types.
-
--- MAX and MIN cannot be used with LOB or LONG data types.
-
-select max(salary) from employees;
-select max(hire_date) from employees;
-select max(last_name) from employees;
-
--- ATENCION. Los campos nulos MAX() no cuenta
-select max(commission_pct) from employees;                                      -- ATENCION
-
--- Esto tiene poca importancia con funccion MAX(), para poder sacar todos campos 
--- de esta columna 
--- incluso campos nullos se puede hacer con esta manera
-select max(nvl(commission_pct, 0)) from employees;
-
------------------------------------------------------------------------------------------------------------------- 
---                                                                                                             MIN
-
--- Minimum value of expr, ignoring null values
-
--- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
--- can store numeric data.
-
--- You can use MIN and MAX for numeric, character, and date data types.
-
--- You can use the MAX and MIN functions for numeric, character, and date data types.
-
--- MAX and MIN cannot be used with LOB or LONG data types.
-
-select min(salary) from employees;
-select min(hire_date) from employees;
-select min(last_name) from employees;
-
--- ATENCION. Los campos nulos MIN() no cuenta
-select min(commission_pct) from employees;                                      -- ATENCION
-
--- ATENCION CON ESTA INFORMACION, PUEDE SER FALSA
--- Para poder resolver problema de campos nullos se puede resolve de 
--- esta manera. Pero es mucho depende de la tarea: 
---     1) Sacar minima comision de todos empleados que tiene comision puesta
---     2) Sacar minima comision de todos empleados que tiene comision puesta, 
---        y de aquellos que no tienen la comision puesta(Esta pregunta es 
---        muy logica commission = 0)
-select min(nvl(commission_pct, 0)) from employees;
-
------------------------------------------------------------------------------------------------------------------- SUM
-
--- Sum values of n, ignoring null values
-
--- You can use the AVG, SUM, MIN, and MAX functions against the columns that 
--- can store numeric data.
-
-select sum(salary) from employees;
-
-select sum(last_name) from employees;   -- ERROR no permite value character
-select sum(hire_date) from employees;   -- ERROR no permite value fecha
-
-select sum(salary) from employees where department_id = 50;
-
-select sum(commission_pct) from employees;
-
------------------------------------------------------------------------------------------------------------------- LISTAGG
-
--- Orders data within each group specified in the ORDER BY clause and then 
--- concatenates the values of the measure column
-
-
------------------------------------------------------------------------------------------------------------------- STDDEV
-
--- Standard deviation of n, ignoring null values
-
------------------------------------------------------------------------------------------------------------------- VARIANCE
-
--- Variance of n, ignoring null values
-
-
---==========================================================================================================================================================
---================================================================================================================================== Nesting Group Functions
---==========================================================================================================================================================
--- Group functions can be nested to a depth of two functions.
-
--- Display the maximum average salary
-select max(avg(salary)) 
-from employees 
-group by department_id;
-
-select avg(salary) 
-from employees 
-group by department_id;
-
-------------------------------------------------------------------------------------------------------------------
---                                                       Group functions can be nested to a depth of two functions
-
-select max(avg(salary)) 
-from employees 
-group by department_id; 
-
--- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
--- ejemplo de abajo. No son 'Nesting Group Functions'.
--- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
--- funcciones no es 'Nesting Group Functions'. 
--- En este tipo de 'conjunto funcciones' se puede poner cualquier cantida 
--- de funciones.
-select round(avg(to_number(salary))) from employees;                            -- ATENCION AQUI No son 'Nesting Group Functions'
-
-select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions'
-
------------------------------------------------------------------------------------------------------------------- 
---                                                  That GROUP BY clause is mandatory when nesting group functions
-
-select max(avg(salary)) 
-from employees;                                                                 -- ERROR
-
-select max(avg(salary)) 
-from employees group by department_id;                                          -- NOT ERROR
-
--- Cuidado aqui para no equivocarse en esta situacion que ocurre en 
--- ejemplo de abajo. No son 'Nesting Group Functions'.
--- Cuando una de las funcciones es 'Single Row Function' el conjunto de estas
--- funcciones no es 'Nesting Group Functions'
--- En este tipo de 'conjunto funcciones' no es obligatorio poner GROUP BY
-select round(avg(salary)) from employees;                                       -- ATENCION AQUI No son 'Nesting Group Functions' 
-select avg(to_number(salary)) from employees;                                   -- ATENCION AQUI No son 'Nesting Group Functions' 
-select round(avg(salary)) from employees group by department_id;                -- ATENCION AQUI No son 'Nesting Group Functions'
-select avg(to_number(salary)) from employees group by department_id;            -- ATENCION AQUI No son 'Nesting Group Functions'
 
 --==========================================================================================================================================================
 --===================================================================================================================================================== JOIN
@@ -3358,18 +3589,6 @@ WHERE (salary, department_id) IN (SELECT min(salary), department_id
                                   FROM employees
                                   GROUP BY department_id)
 ORDER BY department_id;
-
---==========================================================================================================================================================
---================================================================================================================================= Implicit data conversion 
---==========================================================================================================================================================
-select 1 + '3' from dual;
-
-select 1 ||  ' algun cantidad de characteres ' || 45 from dual;
-
-select * from employees where hire_date > '01-jan-2007';
-
--- Atencion aqui, hay que poner la fecha en formato que esta puesto en ajustes
-select * from employees where hire_date > '01-01-2007';
 
 --==========================================================================================================================================================
 --=================================================================================================================================================== Others
